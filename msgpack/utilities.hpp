@@ -44,7 +44,6 @@ namespace msgpack {
     template<typename DataType>
     bool writeRawReversed(Stream & stream, const DataType & value) {
         const auto size = sizeof(DataType);
-        MSGPACK_SAFETY_LENGTH_CHECK(size);
         for(uint8_t i=0; i<size; i++) {
             auto address = (size_t) (size - 1 - i);
             stream.write(( (const char *) & value )[address]);

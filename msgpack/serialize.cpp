@@ -1,4 +1,5 @@
 #include "serialize.hpp"
+#include <string.h>
 
 namespace msgpack {
 #pragma mark Nil
@@ -275,6 +276,11 @@ namespace msgpack {
     template void writeString(Stream & stream, const char *, const int32_t);
     template void writeString(Stream & stream, const char *, const int64_t);
 
+    //----------
+    void writeString(Stream & stream, const char * value) {
+        writeString(stream, value, strlen(value));
+    }
+        
 #pragma mark Binary
     //----------
     void writeBinary8(Stream & stream, const char * value, uint8_t size) {

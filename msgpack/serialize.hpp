@@ -43,6 +43,7 @@ namespace msgpack {
     void writeString32(Stream &, const char *, uint32_t size);
     template<typename SizeType>
     void writeString(Stream & stream, const char * value, SizeType size);
+    void writeString(Stream & stream, const char * value);
 
     void writeBinary5(Stream &, const char *, uint8_t size);
     void writeBinary8(Stream &, const char *, uint8_t size);
