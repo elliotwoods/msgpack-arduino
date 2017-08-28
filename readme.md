@@ -10,9 +10,11 @@ I wrote this library after using https://github.com/HEADS-project/arduino_msgpac
 Usage patterns
 --------------
 
-* Explicit typed functions e.g. `msgpack::readIntU8`
-* Implicit typed functions e.g. `msgpack::readInt(Stream&, uint8_t &)`
-* Serializer class e.g. `serializer << "my key" << myValue;`
+There are different usage patterns. Pick and choose which ones you want to use. Generally all the important code is housed in the explicit functions. If you need to keep your code size small (e.g. if you're really fighting with data size limits) then consider only using one pattern type in your application.
+
+1. Explicit typed functions e.g. `msgpack::readIntU8`
+2. Implicit typed functions e.g. `msgpack::readInt(Stream&, uint8_t &)`
+3. Serializer class e.g. `serializer << "my key" << myValue;`
 
 Be careful of
 -------------
