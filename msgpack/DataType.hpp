@@ -2,7 +2,6 @@
 
 #include <stdint.h>
 #include "Arduino.h"
-#include "utilities.hpp"
 
 namespace msgpack {
     enum DataType : uint8_t {
@@ -32,5 +31,7 @@ namespace msgpack {
         , Binary32
         , Extended
         , FixedExtended
+        , IntPositive
+        , IntNegative
     };
 }
