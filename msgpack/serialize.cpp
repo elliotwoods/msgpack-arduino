@@ -117,13 +117,13 @@ namespace msgpack {
     //----------
     void writeFloat32(Stream & stream, const float & value) {
         writeRawByte(stream, 0xca);
-        writeRaw(stream, value);
+        writeRawReversed(stream, value);
     }
 
     //----------
     void writeFloat64(Stream & stream, const double & value) {
         writeRawByte(stream, 0xcb);
-        writeRaw(stream, value);
+        writeRawReversed(stream, value);
     }
 
 #pragma mark Bool
@@ -164,11 +164,6 @@ namespace msgpack {
         writeRawByte(stream, 0xdb);
         writeRawReversed(stream, size);
         writeRaw(stream, value, size);
-    }
-
-    //----------
-    void writeString(Stream & stream, const char * value) {
-        writeString(stream, value, strlen(value));
     }
         
 #pragma mark Binary

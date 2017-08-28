@@ -1,4 +1,5 @@
 #include "deserialize.hpp"
+#include "serialize.hpp"
 
 namespace msgpack {
 #pragma mark Header
@@ -92,10 +93,15 @@ namespace msgpack {
 	}
 
 	//----------
-	bool nextDataTypeIs(Stream & stream, const DataType & dataFormat, bool safely) {
+	bool nextDataTypeIs(Stream & stream, const DataType & dataType, bool safely) {
 		DataType actualDataType;
 		MSGPACK_SAFELY_RUN(getNextDataType(stream, actualDataType, safely));
-		return actualDataType == dataFormat;
+#ifdef MESSENGER_DEBUG_INCOMING
+		msgpack::writeArraySize4(stream, 2);
+		msgpack::writeIntU8(stream, actualDataType);
+		msgpack::writeIntU8(stream, dataType);
+#endif
+		return actualDataType == dataType;
 	}
 
 #pragma mark Nil
@@ -112,10 +118,27 @@ namespace msgpack {
 #pragma mark Map
 	//----------
 	bool readMapSize(Stream & stream, size_t & size, bool safely) {
+#ifdef MESSENGER_DEBUG_INCOMING
+		msgpack::writeMapSize4(stream, 1);
+		msgpack::writeString(stream, "Checking data format");
+		msgpack::writeIntU8(stream, getNextDataTypeUnsafely(stream));
+		msgpack::writeBool(stream, nextDataTypeIs(stream, DataType::Map));
+#endif
+
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::Map);
 		
+#ifdef MESSENGER_DEBUG_INCOMING
+		msgpack::writeString(stream, "Reading header byte");
+#endif
+	
 		uint8_t header;
-		MSGPACK_SAFELY_RUN(readRawReversed(stream, header));
+		MSGPACK_SAFELY_RUN(readRaw(stream, header, safely));
+		
+#ifdef MESSENGER_DEBUG_INCOMING
+		msgpack::writeMapSize4(stream, 1);
+		msgpack::writeString(stream, "Header byte");
+		msgpack::writeIntU8(stream, header);
+#endif
 		
 		switch(header) {
 		case 0xde:
@@ -127,7 +150,7 @@ namespace msgpack {
 		case 0xdf:
 			//map 32
 			uint32_t size32;
-			MSGPACK_SAFELY_RUN(readRawReversed(stream, size32));
+			MSGPACK_SAFELY_RUN(readRawReversed(stream, size32, safely));
 			size = (size_t) size32;
 			break;
 		default:
@@ -341,14 +364,14 @@ namespace msgpack {
 	bool readFloat32(Stream & stream, float & value, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::Float32);
 		stream.read();
-		return readRaw(stream, value);
+		return readRawReversed(stream, value);
 	}
 
 	//----------
 	bool readFloat64(Stream & stream, double & value, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::Float64);
 		stream.read();
-		return readRaw(stream, value);
+		return readRawReversed(stream, value);
 	}
 
 	//----------
@@ -390,8 +413,11 @@ namespace msgpack {
 		uint8_t bits;
 		MSGPACK_SAFELY_RUN(readRaw(stream, bits, safely));
 		
-		return bits == 0xc3; // 0xc2 = false
+		value = (bits == 0xc3); // 0xc2 = false
+
+		return true;
 	}
+	
 #pragma mark String
 	//----------
 	bool readString5(Stream & stream, char * value, const uint8_t & allocation, uint8_t & outputSize, bool safely) {
@@ -544,7 +570,7 @@ namespace msgpack {
 	bool waitForData(Stream & stream, size_t size, long timeoutMs) {
         const auto delayPerTry = timeoutMs / 10;
         uint8_t tries = 0;
-        while(!Serial.available() < size) {
+        while(stream.available() < (int) size) {
             tries++;
             if(tries >= 10) {
                 return false;
@@ -563,5 +589,12 @@ namespace msgpack {
         }
         stream.readBytes(data, length);
         return true;
-    }
+	}
+	
+	//----------
+	bool readRaw(Stream & stream, uint8_t & value, bool safely) {
+        MSGPACK_SAFETY_LENGTH_CHECK(1);
+        value = (uint8_t) stream.read();
+        return true;
+	}
 }
