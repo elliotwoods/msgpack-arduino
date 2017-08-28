@@ -14,9 +14,11 @@ namespace msgpack {
 		case 0xc3:
 			return DataType::Bool;
 		case 0xc4:
+			return DataType::Binary8;
 		case 0xc5:
+			return DataType::Binary16;
 		case 0xc6:
-			return DataType::Binary;
+			return DataType::Binary32;
 		case 0xc7:
 		case 0xc8:
 		case 0xc9:
@@ -48,9 +50,11 @@ namespace msgpack {
 		case 0xd8:
 			return DataType::FixedExtended;
 		case 0xd9:
+			return DataType::String8;
 		case 0xda:
+			return DataType::String16;
 		case 0xdb:
-			return DataType::String;
+			return DataType::String32;
 		case 0xdc:
 		case 0xdd:
 			return DataType::Array;
@@ -71,7 +75,7 @@ namespace msgpack {
 			return DataType::Array;
 		}
 		if(nextByte >= 0xa0 && nextByte <= 0xbf) {
-			return DataType::String;
+			return DataType::String5;
 		}
 		if(nextByte >= 0xe0 && nextByte <= 0xff) {
 			return DataType::IntNegative;
@@ -166,76 +170,76 @@ namespace msgpack {
 
 #pragma mark Int
 	//----------
-	bool ReadIntU7(Stream & stream, uint8_t & value, bool safely) {
+	bool readIntU7(Stream & stream, uint8_t & value, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::UInt7);
 		stream.read();
 		// since the first bits are 0XXXXXXX, we don't need to do any maths
-		return readRaw(stream, value, safely));
+		return readRaw(stream, value, safely);
 	}
 
 	//----------
-	bool ReadIntU8(Stream & stream, uint8_t & value, bool safely) {
+	bool readIntU8(Stream & stream, uint8_t & value, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::UInt8);
 		stream.read();
-		readRaw(stream, value, safely));
+		return readRaw(stream, value, safely);
 	}
 
 	//----------
-	bool ReadIntU16(Stream & stream, uint16_t & value, bool safely) {
+	bool readIntU16(Stream & stream, uint16_t & value, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::UInt16);
 		stream.read();
-		return readRawReversed(stream, value);
+		return readRawReversed(stream, value, safely);
 	}
 
 	//----------
-	bool ReadIntU32(Stream & stream, uint32_t & value, bool safely) {
+	bool readIntU32(Stream & stream, uint32_t & value, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::UInt32);
 		stream.read();
-		return readRawReversed(stream, value);
+		return readRawReversed(stream, value, safely);
 	}
 
 
 	//----------
-	bool ReadIntU64(Stream & stream, uint64_t & value, bool safely) {
+	bool readIntU64(Stream & stream, uint64_t & value, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::Int64);
 		stream.read();
-		return readRawReversed(stream, value);
+		return readRawReversed(stream, value, safely);
 	}
 
 	//----------
-	bool ReadInt5(Stream & stream, int8_t & value, bool safely) {
+	bool readInt5(Stream & stream, int8_t & value, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::Int5);
 		stream.read();
 		// since the first bits are 111XXXXX, we don't need to do any maths
-		return readRaw(stream, value, safely));
+		return readRaw(stream, value, safely);
 	}
 
 	//----------
-	bool ReadInt8(Stream & stream, int8_t & value, bool safely) {
+	bool readInt8(Stream & stream, int8_t & value, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::Int8);
 		stream.read();
-		return readRaw(stream, value, safely));
+		return readRaw(stream, value, safely);
 	}
 
 	//----------
-	bool ReadInt16(Stream & stream, int16_t & value, bool safely) {
+	bool readInt16(Stream & stream, int16_t & value, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::Int16);
 		stream.read();
-		return readRawReversed(stream, value);
+		return readRawReversed(stream, value, safely);
 	}
 
 	//----------
-	bool ReadInt32(Stream & stream, int32_t & value, bool safely) {
+	bool readInt32(Stream & stream, int32_t & value, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::Int32);
 		stream.read();
-		return readRawReversed(stream, value);
+		return readRawReversed(stream, value, safely);
 	}
 
 	//----------
-	bool ReadInt64(Stream & stream, int64_t & value, bool safely) {
+	bool readInt64(Stream & stream, int64_t & value, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::Int64);
 		stream.read();
-		return readRawReversed(stream, value);
+		return readRawReversed(stream, value, safely);
 	}
 
 	//----------
@@ -312,7 +316,7 @@ namespace msgpack {
 			}
 			case DataType::Int64:
 			{
-				uint64_t specificValue;
+				int64_t specificValue;
 				MSGPACK_SAFELY_RUN(readInt64(stream, specificValue, safely));
 				value = (OutputType) specificValue;
 				return true;
@@ -323,14 +327,14 @@ namespace msgpack {
 			}
 		}
 	}
-	template bool reaedInt<uint8_t>(Stream &, uint8_t &, bool);
-	template bool reaedIntt<uint16_t>(Stream &, uint16_t &, bool);
-	template bool reaedInt<uint32_t>(Stream &, uint32_t &, bool);
-	template bool reaedInt<uint64_t>(Stream &, uint64_t &, bool);
-	template bool reaedInt<int8_t>(Stream &, int8_t &, bool);
-	template bool reaedInt<int16_t>(Stream &, int16_t &, bool);
-	template bool reaedInt<int32_t>(Stream &, int32_t &, bool);
-	template bool reaedInt<int64_t>(Stream &, int64_t &, bool);
+	template bool readInt<uint8_t>(Stream &, uint8_t &, bool);
+	template bool readInt<uint16_t>(Stream &, uint16_t &, bool);
+	template bool readInt<uint32_t>(Stream &, uint32_t &, bool);
+	template bool readInt<uint64_t>(Stream &, uint64_t &, bool);
+	template bool readInt<int8_t>(Stream &, int8_t &, bool);
+	template bool readInt<int16_t>(Stream &, int16_t &, bool);
+	template bool readInt<int32_t>(Stream &, int32_t &, bool);
+	template bool readInt<int64_t>(Stream &, int64_t &, bool);
 
 #pragma mark Float
 	//----------
@@ -378,6 +382,16 @@ namespace msgpack {
 	template bool readFloat<float>(Stream &, float &, bool);
 	template bool readFloat<double>(Stream &, double &, bool);
 
+#pragma mark Bool
+	//----------
+	bool readBool(Stream & stream, bool & value, bool safely) {
+		MSGPACK_SAFETY_FORMAT_CHECK(DataType::Bool);
+		
+		uint8_t bits;
+		MSGPACK_SAFELY_RUN(readRaw(stream, bits, safely));
+		
+		return bits == 0xc3; // 0xc2 = false
+	}
 #pragma mark String
 	//----------
 	bool readString5(Stream & stream, char * value, const uint8_t & allocation, uint8_t & outputSize, bool safely) {
@@ -526,4 +540,28 @@ namespace msgpack {
 		}
 	}
 
+	//----------
+	bool waitForData(Stream & stream, size_t size, long timeoutMs) {
+        const auto delayPerTry = timeoutMs / 10;
+        uint8_t tries = 0;
+        while(!Serial.available() < size) {
+            tries++;
+            if(tries >= 10) {
+                return false;
+            }
+            delay(delayPerTry);
+        }
+        return true;
+	}
+
+	//----------
+	bool readRaw(Stream & stream, char * data, const size_t & length, bool safely) {
+        if(safely) {
+            if (!waitForData(stream, length)) {
+                return false;
+            }
+        }
+        stream.readBytes(data, length);
+        return true;
+    }
 }
