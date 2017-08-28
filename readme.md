@@ -7,7 +7,7 @@ An implementation of the msgpack protocol for platforms which support the Arduin
 
 I wrote this library after using https://github.com/HEADS-project/arduino_msgpack, so some of the ideas are taken from them (e.g. operating directly on the stream).
 
-I'd suggesting reading through the msgpack spec at https://github.com/msgpack/msgpack/blob/master/spec.md so you know the limitations.
+I'd suggesting reading through the msgpack spec at https://github.com/msgpack/msgpack/blob/master/spec.md so that you can understand the limitations.
 
 Usage patterns
 --------------
