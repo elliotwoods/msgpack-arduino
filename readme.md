@@ -7,6 +7,8 @@ An implementation of the msgpack protocol for platforms which support the Arduin
 
 I wrote this library after using https://github.com/HEADS-project/arduino_msgpack, so some of the ideas are taken from them (e.g. operating directly on the stream).
 
+I'd suggesting reading through the msgpack spec at https://github.com/msgpack/msgpack/blob/master/spec.md so you know the limitations.
+
 Usage patterns
 --------------
 
@@ -15,12 +17,6 @@ There are different usage patterns. Pick and choose which ones you want to use. 
 1. Explicit typed functions e.g. `msgpack::readIntU8`
 2. Implicit typed functions e.g. `msgpack::readInt(Stream&, uint8_t &)`
 3. Serializer class e.g. `serializer << "my key" << myValue;`
-
-Be careful of
--------------
-
-* Don't try and break the msgpack spec (e.g. sending a string over 2^32 characters in length, or of negative length). 
-* Use ints for size types (don't pass floats to the template arguments)
 
 Optimisation strategy
 ---------------------
