@@ -1,17 +1,25 @@
 # msgpack-arduino
 
-## Introduction
+Introduction
+------------
 
 An implementation of the msgpack protocol for platforms which support the Arduino library (e.g. Arduino boards with Arduino IDE or Platform IO).
 
 I wrote this library after using https://github.com/HEADS-project/arduino_msgpack, so some of the ideas are taken from them (e.g. operating directly on the stream).
 
-## Be careful of
+I'd suggesting reading through the msgpack spec at https://github.com/msgpack/msgpack/blob/master/spec.md so that you can understand the limitations.
 
-* Don't try and break the msgpack spec (e.g. sending a string over 2^32 characters in length, or of negative length). 
-* Use ints for size types (don't pass floats to the template arguments)
+Usage patterns
+--------------
 
-## Optimisation strategy
+There are different usage patterns. Pick and choose which ones you want to use. Generally all the important code is housed in the explicit functions. If you need to keep your code size small (e.g. if you're really fighting with data size limits) then consider only using one pattern type in your application.
+
+1. Explicit typed functions e.g. `msgpack::readIntU8`
+2. Implicit typed functions e.g. `msgpack::readInt(Stream&, uint8_t &)`
+3. Serializer class e.g. `serializer << "my key" << myValue;`
+
+Optimisation strategy
+---------------------
 
 When writing this library, I've opted to write things specifically and safely. Based on my personal opinion, the design is well optimised when working with a good compiler.
 
@@ -23,5 +31,6 @@ These are essentially 'comparing a one-byte value once more than necessary', so 
 
 Also i believe that the `getNextDataType() == XX` will also be optimised away to be equivalent to `getNextDataTypeIsXX()`.
 
-## License
+License
+-------
 MIT license
