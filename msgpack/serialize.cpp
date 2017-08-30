@@ -2,13 +2,13 @@
 #include <string.h>
 
 namespace msgpack {
-#pragma mark Nil
+// Nil
     //----------
     void writeNil(Stream & stream) {
         writeRawByte(stream, 0xc0);
     }
     
-#pragma mark Map
+// Map
     //----------
     void writeMapSize4(Stream & stream, const uint8_t & value) {
         uint8_t bits = value;
@@ -29,7 +29,7 @@ namespace msgpack {
         writeRawReversed(stream, value);
     }
 
-#pragma mark Array
+// Array
     //----------
     void writeArraySize4(Stream & stream, const uint8_t & value) {
         uint8_t bits = value;
@@ -50,7 +50,7 @@ namespace msgpack {
         writeRawReversed(stream, value);
     }
 
-#pragma mark Int
+// Int
     //----------
     void writeIntU7(Stream & stream, const uint8_t & value) {
         uint8_t bits = value;
@@ -113,7 +113,7 @@ namespace msgpack {
         writeRawReversed(stream, value);
     }
 
-#pragma mark Float
+// Float
     //----------
     void writeFloat32(Stream & stream, const float & value) {
         writeRawByte(stream, 0xca);
@@ -126,7 +126,7 @@ namespace msgpack {
         writeRawReversed(stream, value);
     }
 
-#pragma mark Bool
+// Bool
     //----------
     void writeBool(Stream & stream, bool value) {
         if(value) {
@@ -137,7 +137,7 @@ namespace msgpack {
         }
     }
     
-#pragma mark String
+// String
     //----------
     void writeString5(Stream & stream, const char * value, uint8_t size) {
         size &= 0x1f;
@@ -166,7 +166,7 @@ namespace msgpack {
         writeRaw(stream, value, size);
     }
         
-#pragma mark Binary
+// Binary
     //----------
     void writeBinary8(Stream & stream, const char * value, uint8_t size) {
         writeRawByte(stream, 0xc4);

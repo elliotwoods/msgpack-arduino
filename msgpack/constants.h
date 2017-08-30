@@ -1,6 +1,6 @@
 #pragma once
 
-//#define MESSENGER_DEBUG_INCOMING
+#define MESSENGER_DEBUG_INCOMING
 
 #define MSGPACK_SAFETY_CHECK(ACTION) \
 if(safely) { \

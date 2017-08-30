@@ -2,7 +2,7 @@
 #include "serialize.hpp"
 
 namespace msgpack {
-#pragma mark Header
+// Header
 	//----------
 	DataType getNextDataTypeUnsafely(Stream & stream) {
 		auto nextByte = stream.peek();
@@ -104,7 +104,7 @@ namespace msgpack {
 		return actualDataType == dataType;
 	}
 
-#pragma mark Nil
+// Nil
 	//----------
 	bool readNil(Stream & stream, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::Nil);
@@ -115,7 +115,7 @@ namespace msgpack {
 		return true;
 	}
 
-#pragma mark Map
+// Map
 	//----------
 	bool readMapSize(Stream & stream, size_t & size, bool safely) {
 #ifdef MESSENGER_DEBUG_INCOMING
@@ -162,7 +162,7 @@ namespace msgpack {
 		return true;
 	}
 
-#pragma mark Array
+// Array
 	//----------
 	bool readArraySize(Stream & stream, size_t & size, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::Array);
@@ -191,7 +191,7 @@ namespace msgpack {
 		return true;
 	}
 
-#pragma mark Int
+// Int
 	//----------
 	bool readIntU7(Stream & stream, uint8_t & value, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::UInt7);
@@ -359,7 +359,7 @@ namespace msgpack {
 	template bool readInt<int32_t>(Stream &, int32_t &, bool);
 	template bool readInt<int64_t>(Stream &, int64_t &, bool);
 
-#pragma mark Float
+// Float
 	//----------
 	bool readFloat32(Stream & stream, float & value, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::Float32);
@@ -405,7 +405,7 @@ namespace msgpack {
 	template bool readFloat<float>(Stream &, float &, bool);
 	template bool readFloat<double>(Stream &, double &, bool);
 
-#pragma mark Bool
+// Bool
 	//----------
 	bool readBool(Stream & stream, bool & value, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::Bool);
@@ -417,8 +417,8 @@ namespace msgpack {
 
 		return true;
 	}
-	
-#pragma mark String
+
+// String
 	//----------
 	bool readString5(Stream & stream, char * value, const uint8_t & allocation, uint8_t & outputSize, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::String5);
@@ -504,7 +504,7 @@ namespace msgpack {
 		}
 	}
 
-#pragma mark Binary
+// Binary
 	//----------
 	bool readBinary8(Stream & stream, char * value, const uint8_t & allocation, uint8_t & outputSize, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::Binary8);
