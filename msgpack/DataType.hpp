@@ -31,7 +31,5 @@ namespace msgpack {
         , Binary32
         , Extended
         , FixedExtended
-        , IntPositive
-        , IntNegative
     };
 }

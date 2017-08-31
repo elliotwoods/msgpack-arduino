@@ -43,6 +43,7 @@ namespace msgpack {
 	void writeBinary32(Stream &, const char *, uint32_t size);
 
 	//implicit functions
+	inline void writeMapSize(Stream & stream, const uint8_t & value) { value < 1 << 4 ? writeMapSize4(stream, value) : writeMapSize16(stream, value); }
 	inline void writeMapSize(Stream & stream, const uint16_t & value) { writeMapSize16(stream, value); }
 	inline void writeMapSize(Stream & stream, const uint32_t & value) { writeMapSize32(stream, value); }
 	inline void writeArraySize(Stream & stream, const uint16_t & value) { writeArraySize16(stream, value); }

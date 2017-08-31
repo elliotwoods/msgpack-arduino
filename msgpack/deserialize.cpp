@@ -67,7 +67,7 @@ namespace msgpack {
 		}
 
 		if(nextByte >= 0x00 && nextByte <= 0x7f) {
-			return DataType::IntPositive;
+			return DataType::UInt7;
 		}
 		if(nextByte >= 0x80 && nextByte <= 0x8f) {
 			return DataType::Map;
@@ -79,7 +79,7 @@ namespace msgpack {
 			return DataType::String5;
 		}
 		if(nextByte >= 0xe0 && nextByte <= 0xff) {
-			return DataType::IntNegative;
+			return DataType::Int5;
 		}
 
 		return DataType::Unknown;
@@ -96,11 +96,6 @@ namespace msgpack {
 	bool nextDataTypeIs(Stream & stream, const DataType & dataType, bool safely) {
 		DataType actualDataType;
 		MSGPACK_SAFELY_RUN(getNextDataType(stream, actualDataType, safely));
-#ifdef MESSENGER_DEBUG_INCOMING
-		msgpack::writeArraySize4(stream, 2);
-		msgpack::writeIntU8(stream, actualDataType);
-		msgpack::writeIntU8(stream, dataType);
-#endif
 		return actualDataType == dataType;
 	}
 
@@ -120,7 +115,7 @@ namespace msgpack {
 	bool readMapSize(Stream & stream, size_t & size, bool safely) {
 #ifdef MESSENGER_DEBUG_INCOMING
 		msgpack::writeMapSize4(stream, 1);
-		msgpack::writeString(stream, "Checking data format");
+		msgpack::writeString(stream, "Chk map header");
 		msgpack::writeIntU8(stream, getNextDataTypeUnsafely(stream));
 		msgpack::writeBool(stream, nextDataTypeIs(stream, DataType::Map));
 #endif
@@ -128,7 +123,7 @@ namespace msgpack {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::Map);
 		
 #ifdef MESSENGER_DEBUG_INCOMING
-		msgpack::writeString(stream, "Reading header byte");
+		msgpack::writeString(stream, "Rx map head");
 #endif
 	
 		uint8_t header;
@@ -195,7 +190,6 @@ namespace msgpack {
 	//----------
 	bool readIntU7(Stream & stream, uint8_t & value, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::UInt7);
-		stream.read();
 		// since the first bits are 0XXXXXXX, we don't need to do any maths
 		return readRaw(stream, value, safely);
 	}
@@ -232,7 +226,6 @@ namespace msgpack {
 	//----------
 	bool readInt5(Stream & stream, int8_t & value, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::Int5);
-		stream.read();
 		// since the first bits are 111XXXXX, we don't need to do any maths
 		return readRaw(stream, value, safely);
 	}
@@ -269,7 +262,13 @@ namespace msgpack {
 	template<typename OutputType>
 	bool readInt(Stream & stream, OutputType & value, bool safely) {
 		DataType dataFormat;
-		getNextDataType(stream, dataFormat, safely);
+		MSGPACK_SAFELY_RUN(getNextDataType(stream, dataFormat, safely));
+
+		#ifdef MESSENGER_DEBUG_INCOMING
+		msgpack::writeMapSize4(stream, 1);
+		msgpack::writeString(stream, "Decoding int");
+		msgpack::writeIntU8(stream, dataFormat);
+		#endif
 
 		switch (dataFormat)
 		{

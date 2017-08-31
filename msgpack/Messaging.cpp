@@ -11,7 +11,7 @@ namespace msgpack {
 		const bool safely = true;
 
 #ifdef MESSENGER_DEBUG_INCOMING
-		msgpack::writeString(stream, "Attempt to read map size");
+		msgpack::writeString(stream, "try rx map");
 #endif
 
 		size_t mapSize;
@@ -20,7 +20,7 @@ namespace msgpack {
 		
 #ifdef MESSENGER_DEBUG_INCOMING
 		msgpack::writeMapSize4(stream, 1);
-		msgpack::writeString(stream, "Received map");
+		msgpack::writeString(stream, "map size");
 		msgpack::writeInt(stream, mapSize);
 #endif
 
@@ -31,7 +31,7 @@ namespace msgpack {
 
 #ifdef MESSENGER_DEBUG_INCOMING
 			msgpack::writeMapSize4(stream, 1);
-			msgpack::writeString(stream, "Received key");
+			msgpack::writeString(stream, "key");
 			msgpack::writeString(stream, key);
 #endif
 
