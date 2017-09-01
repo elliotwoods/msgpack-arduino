@@ -1,5 +1,8 @@
 #pragma once
 
+// Add this define when you need to debug your deserialisation routines.
+// It will result in many msgpack debug messages being sent over serial (in no particular format)
+// NB : suggest you disable any of your other outgoing messsages whilst this flag is defined
 // #define MESSENGER_DEBUG_INCOMING
 
 #define MSGPACK_SAFETY_CHECK(ACTION) \
