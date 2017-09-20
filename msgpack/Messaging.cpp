@@ -1,9 +1,9 @@
 #include "Messaging.hpp"
 #include "deserialize.hpp"
 
-#ifdef MESSENGER_DEBUG_INCOMING
 #include "serialize.hpp"
-#endif
+#include "Serializer.hpp"
+
 
 namespace msgpack {
 	//----------
