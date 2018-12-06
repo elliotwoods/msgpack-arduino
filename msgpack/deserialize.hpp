@@ -4,7 +4,7 @@
 #include "DataType.hpp"
 #include "constants.h"
 
-namespace msgpack {	
+namespace msgpack {
 	inline DataType getNextDataTypeUnsafely(Stream &);
 	inline bool getNextDataType(Stream &, DataType &, bool safely = true);
 	inline bool nextDataTypeIs(Stream &, const DataType &, bool safely = true);
@@ -43,11 +43,13 @@ namespace msgpack {
 	bool readString16(Stream &, char *, const uint16_t & allocation, uint16_t & outputSize, bool safely = true);
 	bool readString32(Stream &, char *, const uint32_t & allocation, uint32_t & outputSize, bool safely = true);
 	bool readString(Stream &, char *, const size_t & allocation, size_t & outputSize, bool safely = true);
+	String readStringNew(Stream &, bool safely = true);
+	char* readStringNewC(Stream &, bool safely = true);
 
 	bool readBinary8(Stream &, char *, const uint8_t & allocation, uint8_t & outputSize, bool safely = true);
 	bool readBinary16(Stream &, char *, const uint16_t & allocation, uint16_t & outputSize, bool safely = true);
 	bool readBinary32(Stream &, char *, const uint32_t & allocation, uint32_t & outputSize, bool safely = true);
-	bool readBinary(Stream &, char *, const size_t & allocation, size_t & outputSize, bool safely = true);	
+	bool readBinary(Stream &, char *, const size_t & allocation, size_t & outputSize, bool safely = true);
 
 	bool waitForData(Stream & stream, size_t size, long timeoutMs = 100);
 
@@ -70,6 +72,6 @@ namespace msgpack {
         return true;
 	}
 
-	bool readRaw(Stream & stream, uint8_t & value, bool safely = true);	
+	bool readRaw(Stream & stream, uint8_t & value, bool safely = true);
 	bool readRaw(Stream & stream, char * data, const size_t & length, bool safely = true);
 }
