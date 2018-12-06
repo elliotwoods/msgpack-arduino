@@ -502,21 +502,22 @@ namespace msgpack {
 	}
 
 	//----------
-	String readStringNew(Stream &stream, bool safely = true) {
+	String readStringNew(Stream &stream, bool safely) {
 		char* buffer = readStringNewC(stream, safely);
-		try { return String(buffer); } finally { delete buffer; }
+		String result(buffer);
+		delete buffer;
+		return result;
 	}
 
 	//----------
-	char* readStringNewC(Stream &stream, bool safely = true) {
+	char* readStringNewC(Stream &stream, bool safely) {
 		DataType	dataFormat;
-		size_t		outputSize;
 		char*			value = nullptr;
 		getNextDataType(stream, dataFormat, safely);
 		switch(dataFormat) {
 			case DataType::String5: {
 				MSGPACK_SAFETY_FORMAT_CHECK(DataType::String5);
-				stream.read();
+				uint8_t outputSize;
 				MSGPACK_SAFELY_RUN(readRaw(stream, outputSize, safely));
 				outputSize &= 0x1f;
 				value = new char[outputSize + 1];
@@ -526,6 +527,7 @@ namespace msgpack {
 			}
 			case DataType::String8: {
 				MSGPACK_SAFETY_FORMAT_CHECK(DataType::String8);
+				uint8_t outputSize;
 				stream.read();
 				MSGPACK_SAFELY_RUN(readRaw(stream, outputSize, safely));
 				value = new char[outputSize + 1];
@@ -535,6 +537,7 @@ namespace msgpack {
 			}
 			case DataType::String16: {
 				MSGPACK_SAFETY_FORMAT_CHECK(DataType::String16);
+				uint16_t outputSize;
 				stream.read();
 				MSGPACK_SAFELY_RUN(readRawReversed(stream, outputSize, safely));
 				value = new char[outputSize + 1];
@@ -544,6 +547,7 @@ namespace msgpack {
 			}
 			case DataType::String32: {
 				MSGPACK_SAFETY_FORMAT_CHECK(DataType::String32);
+				uint32_t outputSize;
 				stream.read();
 				MSGPACK_SAFELY_RUN(readRawReversed(stream, outputSize, safely));
 				value = new char[outputSize + 1];
