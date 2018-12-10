@@ -84,7 +84,7 @@ namespace msgpack {
 
 		return DataType::Unknown;
 	}
-	
+
 	//----------
 	bool getNextDataType(Stream & stream, DataType & dataFormat, bool safely) {
 		MSGPACK_SAFETY_LENGTH_CHECK(1);
@@ -103,10 +103,10 @@ namespace msgpack {
 	//----------
 	bool readNil(Stream & stream, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::Nil);
-		
+
 		//this is already safe to perform if the format checks out
 		stream.read();
-		
+
 		return true;
 	}
 
@@ -121,20 +121,20 @@ namespace msgpack {
 #endif
 
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::Map);
-		
+
 #ifdef MESSENGER_DEBUG_INCOMING
 		msgpack::writeString(stream, "Rx map head");
 #endif
-	
+
 		uint8_t header;
 		MSGPACK_SAFELY_RUN(readRaw(stream, header, safely));
-		
+
 #ifdef MESSENGER_DEBUG_INCOMING
 		msgpack::writeMapSize4(stream, 1);
 		msgpack::writeString(stream, "Header byte");
 		msgpack::writeIntU8(stream, header);
 #endif
-		
+
 		switch(header) {
 		case 0xde:
 			//map 16:
@@ -279,7 +279,7 @@ namespace msgpack {
 				value = (OutputType) specificValue;
 				return true;
 			}
-				
+
 			case DataType::UInt8:
 			{
 				uint8_t specificValue;
@@ -408,10 +408,10 @@ namespace msgpack {
 	//----------
 	bool readBool(Stream & stream, bool & value, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(DataType::Bool);
-		
+
 		uint8_t bits;
 		MSGPACK_SAFELY_RUN(readRaw(stream, bits, safely));
-		
+
 		value = (bits == 0xc3); // 0xc2 = false
 
 		return true;
@@ -497,8 +497,63 @@ namespace msgpack {
 				return true;
 			}
 			default:
-			{
 				return false;
+		}
+	}
+
+	//----------
+	String readStringNew(Stream &stream, bool safely) {
+		char* buffer = readStringNewC(stream, safely);
+		String result(buffer);
+		delete buffer;
+		return result;
+	}
+
+	//----------
+	char* readStringNewC(Stream &stream, bool safely) {
+		DataType	dataFormat;
+		char*			value = nullptr;
+		getNextDataType(stream, dataFormat, safely);
+		switch(dataFormat) {
+			case DataType::String5: {
+				MSGPACK_SAFETY_FORMAT_CHECK(DataType::String5);
+				uint8_t outputSize;
+				MSGPACK_SAFELY_RUN(readRaw(stream, outputSize, safely));
+				outputSize &= 0x1f;
+				value = new char[outputSize + 1];
+				MSGPACK_SAFELY_RUN(readRaw(stream, value, outputSize, safely));
+				value[outputSize] = '\0';
+				return value;
+			}
+			case DataType::String8: {
+				MSGPACK_SAFETY_FORMAT_CHECK(DataType::String8);
+				uint8_t outputSize;
+				stream.read();
+				MSGPACK_SAFELY_RUN(readRaw(stream, outputSize, safely));
+				value = new char[outputSize + 1];
+				MSGPACK_SAFELY_RUN(readRaw(stream, value, outputSize, safely));
+				value[outputSize] = '\0';
+				return value;
+			}
+			case DataType::String16: {
+				MSGPACK_SAFETY_FORMAT_CHECK(DataType::String16);
+				uint16_t outputSize;
+				stream.read();
+				MSGPACK_SAFELY_RUN(readRawReversed(stream, outputSize, safely));
+				value = new char[outputSize + 1];
+				MSGPACK_SAFELY_RUN(readRaw(stream, value, outputSize, safely));
+				value[outputSize] = '\0';
+				return value;
+			}
+			case DataType::String32: {
+				MSGPACK_SAFETY_FORMAT_CHECK(DataType::String32);
+				uint32_t outputSize;
+				stream.read();
+				MSGPACK_SAFELY_RUN(readRawReversed(stream, outputSize, safely));
+				value = new char[outputSize + 1];
+				MSGPACK_SAFELY_RUN(readRaw(stream, value, outputSize, safely));
+				value[outputSize] = '\0';
+				return value;
 			}
 		}
 	}
@@ -589,7 +644,7 @@ namespace msgpack {
         stream.readBytes(data, length);
         return true;
 	}
-	
+
 	//----------
 	bool readRaw(Stream & stream, uint8_t & value, bool safely) {
         MSGPACK_SAFETY_LENGTH_CHECK(1);
