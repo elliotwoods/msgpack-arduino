@@ -11,6 +11,7 @@ namespace msgpack {
 	
 		virtual void reportStatus(Serializer &) = 0;
 		bool processIncoming(Stream &);
+		bool matchesKey(const char * key);
 	protected:
 		virtual bool processIncomingByKey(const char * key, Stream &) = 0;
 	};

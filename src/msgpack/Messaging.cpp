@@ -42,4 +42,11 @@ namespace msgpack {
 
 		return true;
 	}
+
+	//----------
+	bool Messaging::matchesKey(const char * key) {
+		return strcmp(key, this->getTypeName()) == 0;
+	}
 }
+
+
