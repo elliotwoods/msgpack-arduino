@@ -5,11 +5,13 @@
 // NB : suggest you disable any of your other outgoing messsages whilst this flag is defined
 // #define MESSENGER_DEBUG_INCOMING
 
+// Note that the 'safely' here is generally in the function arguments
+
 #define MSGPACK_SAFETY_CHECK(ACTION) \
 if(safely) { \
-    if(!(ACTION)) { \
-        return false; \
-    } \
+	if(!(ACTION)) { \
+		return false; \
+	} \
 }
 
 #define MSGPACK_SAFELY_RUN(ACTION) \

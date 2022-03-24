@@ -5,9 +5,9 @@
 #include "constants.h"
 
 namespace msgpack {
-	inline DataType getNextDataTypeUnsafely(Stream &);
-	inline bool getNextDataType(Stream &, DataType &, bool safely = true);
-	inline bool nextDataTypeIs(Stream &, const DataType &, bool safely = true);
+	DataType getNextDataTypeUnsafely(Stream &);
+	bool getNextDataType(Stream &, DataType &, bool safely = true);
+	bool nextDataTypeIs(Stream &, const DataType &, bool safely = true);
 
 	bool readNil(Stream &, bool safely = true);
 

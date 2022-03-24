@@ -510,7 +510,7 @@ namespace msgpack {
 	}
 
 	//----------
-	char* readStringNewC(Stream &stream, bool safely) {
+	bool readStringNewC(Stream &stream, bool safely, char * & string) {
 		DataType	dataFormat;
 		char*			value = nullptr;
 		getNextDataType(stream, dataFormat, safely);
@@ -523,7 +523,8 @@ namespace msgpack {
 				value = new char[outputSize + 1];
 				MSGPACK_SAFELY_RUN(readRaw(stream, value, outputSize, safely));
 				value[outputSize] = '\0';
-				return value;
+				string = value;
+				return true;
 			}
 			case DataType::String8: {
 				MSGPACK_SAFETY_FORMAT_CHECK(stream, DataType::String8);
@@ -533,7 +534,8 @@ namespace msgpack {
 				value = new char[outputSize + 1];
 				MSGPACK_SAFELY_RUN(readRaw(stream, value, outputSize, safely));
 				value[outputSize] = '\0';
-				return value;
+				string = value;
+				return true;
 			}
 			case DataType::String16: {
 				MSGPACK_SAFETY_FORMAT_CHECK(stream, DataType::String16);
@@ -543,7 +545,8 @@ namespace msgpack {
 				value = new char[outputSize + 1];
 				MSGPACK_SAFELY_RUN(readRaw(stream, value, outputSize, safely));
 				value[outputSize] = '\0';
-				return value;
+				string = value;
+				return true;
 			}
 			case DataType::String32: {
 				MSGPACK_SAFETY_FORMAT_CHECK(stream, DataType::String32);
@@ -553,9 +556,14 @@ namespace msgpack {
 				value = new char[outputSize + 1];
 				MSGPACK_SAFELY_RUN(readRaw(stream, value, outputSize, safely));
 				value[outputSize] = '\0';
-				return value;
+				string = value;
+				return true;
 			}
+			default:
+				break;
 		}
+
+		return false;
 	}
 
 // Binary
@@ -622,33 +630,33 @@ namespace msgpack {
 
 	//----------
 	bool waitForData(Stream & stream, size_t size, long timeoutMs) {
-        const auto delayPerTry = timeoutMs / 10;
-        uint8_t tries = 0;
-        while(stream.available() < (int) size) {
-            tries++;
-            if(tries >= 10) {
-                return false;
-            }
-            delay(delayPerTry);
-        }
-        return true;
+		const auto delayPerTry = timeoutMs / 10;
+		uint8_t tries = 0;
+		while(stream.available() < (int) size) {
+			tries++;
+			if(tries >= 10) {
+				return false;
+			}
+			delay(delayPerTry);
+		}
+		return true;
 	}
 
 	//----------
 	bool readRaw(Stream & stream, char * data, const size_t & length, bool safely) {
-        if(safely) {
-            if (!waitForData(stream, length)) {
-                return false;
-            }
-        }
-        stream.readBytes(data, length);
-        return true;
+		if(safely) {
+			if (!waitForData(stream, length)) {
+				return false;
+			}
+		}
+		stream.readBytes(data, length);
+		return true;
 	}
 
 	//----------
 	bool readRaw(Stream & stream, uint8_t & value, bool safely) {
-        MSGPACK_SAFETY_LENGTH_CHECK(stream, 1);
-        value = (uint8_t) stream.read();
-        return true;
+		MSGPACK_SAFETY_LENGTH_CHECK(stream, 1);
+		value = (uint8_t) stream.read();
+		return true;
 	}
 }
