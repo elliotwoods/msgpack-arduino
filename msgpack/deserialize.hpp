@@ -56,7 +56,7 @@ namespace msgpack {
 	template<typename DataType>
     bool readRaw(Stream & stream, DataType & value, bool safely = true) {
         const auto size = sizeof(DataType);
-        MSGPACK_SAFETY_LENGTH_CHECK(size);
+        MSGPACK_SAFETY_LENGTH_CHECK(stream, size);
         stream.readBytes((char *) & value, size);
         return true;
 	}
@@ -64,7 +64,7 @@ namespace msgpack {
 	template<typename DataType>
     bool readRawReversed(Stream & stream, DataType & value, bool safely = true) {
 		const auto size = sizeof(DataType);
-        MSGPACK_SAFETY_LENGTH_CHECK(size);
+        MSGPACK_SAFETY_LENGTH_CHECK(stream, size);
         for(uint8_t i=0; i<size; i++) {
 			auto address = (size_t) (size - 1 - i);
             ( (char*) & value )[address] = (char) stream.read();
