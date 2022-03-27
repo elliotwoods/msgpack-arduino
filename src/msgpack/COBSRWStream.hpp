@@ -19,8 +19,8 @@ namespace msgpack {
 		int peek() override;
 
 		// Custom read functions
-		void nextPacket();
-		bool isEndOfPacket() const;
+		void nextIncomingPacket();
+		bool isEndOfIncomingPacket() const;
 
 		//
 		//--
@@ -45,8 +45,8 @@ namespace msgpack {
 		struct {
 			uint8_t * decodedBuffer;
 			uint8_t * decodedBufferBack;
-			size_t bufferWritePosition = 0;
-			size_t bufferReadPosition = 0;
+			uint8_t bufferWritePosition = 0;
+			uint8_t bufferReadPosition = 0;
 
 			// When this is true:
 			//	- We will not decode any more
@@ -58,11 +58,16 @@ namespace msgpack {
 			bool startOfStream = true;
 
 			bool skipToNextPacket = false;
-		} incoming;
+		} receive;
 
 		void decodeIncoming();
 		void realignIncoming();
 
-		void resetIncoming();
+		struct {
+			uint8_t plainTextBuffer[254];
+			uint8_t writePosition = 0;
+		} transmit;
+
+		void writeBuffer();
 	};
 }

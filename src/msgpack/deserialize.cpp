@@ -114,7 +114,7 @@ namespace msgpack {
 	//----------
 	bool readMapSize(Stream & stream, size_t & size, bool safely) {
 #ifdef MESSENGER_DEBUG_INCOMING
-		msgpack::writeMapSize4(stream, 3);
+		msgpack::writeMapSize4(stream, 2);
 		{
 			msgpack::writeString(stream, "next type");
 			{
@@ -126,6 +126,7 @@ namespace msgpack {
 				msgpack::writeBool(stream, nextDataTypeIs(stream, DataType::Map));
 			}
 		}
+		stream.flush();
 #endif
 
 		MSGPACK_SAFETY_FORMAT_CHECK(stream, DataType::Map);
@@ -134,10 +135,14 @@ namespace msgpack {
 		MSGPACK_SAFELY_RUN(readRaw(stream, header, safely));
 
 #ifdef MESSENGER_DEBUG_INCOMING
-		msgpack::writeString(stream, "header");
+		msgpack::writeMapSize4(stream, 1);
 		{
-			msgpack::writeIntU8(stream, header);
+			msgpack::writeString(stream, "header");
+			{
+				msgpack::writeIntU8(stream, header);
+			}
 		}
+		stream.flush();
 #endif
 
 		switch(header) {
@@ -271,8 +276,12 @@ namespace msgpack {
 
 		#ifdef MESSENGER_DEBUG_INCOMING
 		msgpack::writeMapSize4(stream, 1);
-		msgpack::writeString(stream, "Decoding int");
-		msgpack::writeIntU8(stream, dataFormat);
+		{
+			msgpack::writeString(stream, "Int type");
+			{
+				msgpack::writeIntU8(stream, dataFormat);
+			}
+		}
 		stream.flush();
 		#endif
 

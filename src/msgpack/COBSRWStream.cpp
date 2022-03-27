@@ -5,15 +5,15 @@ namespace msgpack {
 	COBSRWStream::COBSRWStream(Stream& stream)
 	: stream(stream)
 	{
-		this->incoming.decodedBuffer = new uint8_t[MSGPACK_COBSRWSTREAM_BUFFER_SIZE];
-		this->incoming.decodedBufferBack = new uint8_t[MSGPACK_COBSRWSTREAM_BUFFER_SIZE];
+		this->receive.decodedBuffer = new uint8_t[MSGPACK_COBSRWSTREAM_BUFFER_SIZE];
+		this->receive.decodedBufferBack = new uint8_t[MSGPACK_COBSRWSTREAM_BUFFER_SIZE];
 	}
 
 	//----------
 	COBSRWStream::~COBSRWStream()
 	{
-		delete[] this->incoming.decodedBuffer;
-		delete[] this->incoming.decodedBufferBack;
+		delete[] this->receive.decodedBuffer;
+		delete[] this->receive.decodedBufferBack;
 	}
 
 	//----------
@@ -21,16 +21,16 @@ namespace msgpack {
 	COBSRWStream::available()
 	{
 		this->decodeIncoming();
-		return this->incoming.bufferWritePosition - this->incoming.bufferReadPosition;
+		return this->receive.bufferWritePosition - this->receive.bufferReadPosition;
 	}
 
 	//----------
 	int
 	COBSRWStream::read()
 	{
-		if(this->incoming.bufferReadPosition < this->incoming.bufferWritePosition) {
-			const auto readPosition = this->incoming.bufferReadPosition++;
-			return this->incoming.decodedBuffer[readPosition];
+		if(this->receive.bufferReadPosition < this->receive.bufferWritePosition) {
+			const auto readPosition = this->receive.bufferReadPosition++;
+			return this->receive.decodedBuffer[readPosition];
 		}
 		else {
 			return -1; // EOF
@@ -41,8 +41,8 @@ namespace msgpack {
 	int
 	COBSRWStream::peek()
 	{
-		if(this->incoming.bufferReadPosition < this->incoming.bufferWritePosition) {
-			return this->incoming.decodedBuffer[this->incoming.bufferReadPosition];
+		if(this->receive.bufferReadPosition < this->receive.bufferWritePosition) {
+			return this->receive.decodedBuffer[this->receive.bufferReadPosition];
 		}
 		else {
 			return -1; // EOF
@@ -51,26 +51,26 @@ namespace msgpack {
 
 	//----------
 	void
-	COBSRWStream::nextPacket()
+	COBSRWStream::nextIncomingPacket()
 	{
-		this->incoming.skipToNextPacket = true;
+		this->receive.skipToNextPacket = true;
 	}
 
 	//----------
 	bool
-	COBSRWStream::isEndOfPacket() const
+	COBSRWStream::isEndOfIncomingPacket() const
 	{
-		return this->incoming.endOfPacketReachedWithinBuffer
-			&& (this->incoming.bufferReadPosition == this->incoming.bufferWritePosition);
+		return this->receive.endOfPacketReachedWithinBuffer
+			&& (this->receive.bufferReadPosition == this->receive.bufferWritePosition);
 	}
 
 	//----------
 	void
 	COBSRWStream::decodeIncoming()
 	{
-		if(this->incoming.skipToNextPacket) {
+		if(this->receive.skipToNextPacket) {
 			// Did we see EOP?
-			if(!this->incoming.endOfPacketReachedWithinBuffer) {
+			if(!this->receive.endOfPacketReachedWithinBuffer) {
 				// Try to see the EOP
 				auto data = this->stream.read();
 				while(data != -1) {
@@ -86,23 +86,23 @@ namespace msgpack {
 			}
 
 			// We've seen EOP and can now start again
-				this->incoming.bufferReadPosition = 0;
-				this->incoming.bufferWritePosition = 0;
-				this->incoming.endOfPacketReachedWithinBuffer = false;
-				this->incoming.skipToNextPacket = false;
-				this->incoming.bytesUntilNextZero = 0;
-				this->incoming.startOfStream = true;
+			this->receive.bufferReadPosition = 0;
+			this->receive.bufferWritePosition = 0;
+			this->receive.endOfPacketReachedWithinBuffer = false;
+			this->receive.skipToNextPacket = false;
+			this->receive.bytesUntilNextZero = 0;
+			this->receive.startOfStream = true;
 		}
 
 		// Check if we've seen an EOP
-		if(this->incoming.endOfPacketReachedWithinBuffer) {
+		if(this->receive.endOfPacketReachedWithinBuffer) {
 			// We don't continue if we've seen an EOP until user skips to next packet
 			return;
 		}
 
 		// Make as much space for writing as possible
 		// This is important for cases where we are waiting for a specific number of bytes to become available
-		//this->realignIncoming();
+		this->realignIncoming();
 		
 		// Perform the decode
 		{
@@ -111,37 +111,37 @@ namespace msgpack {
 
 			// Whilst there's data and decoded buffer space available
 			while(incomingData != -1
-				&& this->incoming.bufferWritePosition < MSGPACK_COBSRWSTREAM_BUFFER_SIZE) {
-					
+				&& this->receive.bufferWritePosition < MSGPACK_COBSRWSTREAM_BUFFER_SIZE) {
+
 				if(incomingData == 0x0) {
 					// EOP reached
-					this->incoming.endOfPacketReachedWithinBuffer = true;
+					this->receive.endOfPacketReachedWithinBuffer = true;
 				}
 				else {
 					// Decode into the buffer
-					if(this->incoming.bytesUntilNextZero == 0) {
+					if(this->receive.bytesUntilNextZero == 0) {
 						if(incomingData == 0xFF) {
-							this->incoming.bytesUntilNextZero = 0xFF;
+							this->receive.bytesUntilNextZero = 0xFF;
 						}
 						else {
 							// This is a zero
-							this->incoming.bytesUntilNextZero = (uint8_t) incomingData;
+							this->receive.bytesUntilNextZero = (uint8_t) incomingData;
 
-							if(!this->incoming.startOfStream) {
-								this->incoming.decodedBuffer[this->incoming.bufferWritePosition] = 0x0;
-								this->incoming.bufferWritePosition++;
+							if(!this->receive.startOfStream) {
+								this->receive.decodedBuffer[this->receive.bufferWritePosition] = 0x0;
+								this->receive.bufferWritePosition++;
 							}
 						}
-						this->incoming.startOfStream = false;
+						this->receive.startOfStream = false;
 					}
 					else {
 						// This is a non-zero byte
-						this->incoming.decodedBuffer[this->incoming.bufferWritePosition] = incomingData;
-						this->incoming.bufferWritePosition++;
+						this->receive.decodedBuffer[this->receive.bufferWritePosition] = incomingData;
+						this->receive.bufferWritePosition++;
 					}
 				}
 
-				this->incoming.bytesUntilNextZero--;
+				this->receive.bytesUntilNextZero--;
 				incomingData = this->stream.read();
 			}
 		}
@@ -151,67 +151,95 @@ namespace msgpack {
 	void
 	COBSRWStream::realignIncoming()
 	{
-		if(this->incoming.bufferReadPosition > 0) {
-			const auto decodedSize = this->incoming.bufferWritePosition > this->incoming.bufferReadPosition;
+		if(this->receive.bufferReadPosition > 0) {
+			const auto decodedSize = this->receive.bufferWritePosition - this->receive.bufferReadPosition;
 
 			// Move the data to the start of buffer
 			if (decodedSize > 0) {
 				// Copy into the other buffer
-				memcpy(this->incoming.decodedBufferBack
-					, this->incoming.decodedBuffer + this->incoming.bufferReadPosition
+				memcpy(this->receive.decodedBufferBack
+					, this->receive.decodedBuffer + this->receive.bufferReadPosition
 					, decodedSize);
 
 				// Swap buffers
 				{
-					auto temp = this->incoming.decodedBuffer;
-					this->incoming.decodedBuffer = this->incoming.decodedBufferBack;
-					this->incoming.decodedBufferBack = temp;
+					auto temp = this->receive.decodedBuffer;
+					this->receive.decodedBuffer = this->receive.decodedBufferBack;
+					this->receive.decodedBufferBack = temp;
 				}
 			}
 
 			// Change the positions
 			{
-				this->incoming.bufferWritePosition -= this->incoming.bufferReadPosition;
-				this->incoming.bufferReadPosition = 0;
+				this->receive.bufferWritePosition -= this->receive.bufferReadPosition;
+				this->receive.bufferReadPosition = 0;
 			}
 		}
 	}
 
 	//----------
 	size_t
-	COBSRWStream::write(uint8_t)
+	COBSRWStream::write(uint8_t data)
 	{
+		if(data == 0x0) {
+			this->writeBuffer();
+		}
+		else {
+			this->transmit.plainTextBuffer[this->transmit.writePosition] = data;
+			this->transmit.writePosition++;
+		}
+		
 
-		return 0;
+		if(this->transmit.writePosition == sizeof(this->transmit.plainTextBuffer)) {
+			this->writeBuffer();
+		}
+
+		return 1;
 	}
 
 	//----------
 	size_t
 	COBSRWStream::write(const uint8_t *buffer, size_t size)
 	{
-		
-		return 0;
+		for(size_t i=0; i<size; i++) {
+			this->write(buffer[i]);
+		}
+		return size;
+	}
+
+	//----------
+	void
+	COBSRWStream::writeBuffer()
+	{
+		// Write distance to next buffer start
+		this->stream.write((uint8_t) this->transmit.writePosition + 1);
+
+		// Write all the non-zero bytes
+		this->stream.write(this->transmit.plainTextBuffer, this->transmit.writePosition);
+
+		this->transmit.writePosition = 0;
 	}
 
 	//----------
 	int
 	COBSRWStream::availableForWrite()
 	{
-		
-		return 0;
+		return sizeof(this->transmit.plainTextBuffer) - this->transmit.writePosition;
 	}
 
 	//----------
 	void
 	COBSRWStream::flush()
 	{
-
+		this->writeEOP();
+		this->stream.flush();
 	}
 
 	//----------
 	void
 	COBSRWStream::writeEOP()
 	{
-
+		this->writeBuffer();
+		this->stream.write((uint8_t) 0x0);
 	}
 }

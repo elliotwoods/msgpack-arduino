@@ -11,7 +11,8 @@ namespace msgpack {
 		const bool safely = true;
 
 #ifdef MESSENGER_DEBUG_INCOMING
-		msgpack::writeString(stream, "try rx map");
+		msgpack::writeString(stream, "processIncoming");
+		stream.flush();
 #endif
 
 		size_t mapSize;
@@ -20,8 +21,13 @@ namespace msgpack {
 		
 #ifdef MESSENGER_DEBUG_INCOMING
 		msgpack::writeMapSize4(stream, 1);
-		msgpack::writeString(stream, "map size");
-		msgpack::writeInt(stream, (uint32_t) mapSize);
+		{
+			msgpack::writeString(stream, "map size");
+			{
+				msgpack::writeInt(stream, (uint32_t) mapSize);
+			}
+		}
+		stream.flush();
 #endif
 
 		char key[100];
@@ -31,8 +37,13 @@ namespace msgpack {
 
 #ifdef MESSENGER_DEBUG_INCOMING
 			msgpack::writeMapSize4(stream, 1);
-			msgpack::writeString(stream, "key");
-			msgpack::writeString(stream, key);
+			{
+				msgpack::writeString(stream, "key");
+				{
+					msgpack::writeString(stream, key);
+				}
+			}
+			stream.flush();
 #endif
 
 			if (!this->processIncomingByKey(key, stream)) {
