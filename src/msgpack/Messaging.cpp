@@ -21,7 +21,7 @@ namespace msgpack {
 #ifdef MESSENGER_DEBUG_INCOMING
 		msgpack::writeMapSize4(stream, 1);
 		msgpack::writeString(stream, "map size");
-		msgpack::writeInt(stream, mapSize);
+		msgpack::writeInt(stream, (uint32_t) mapSize);
 #endif
 
 		char key[100];

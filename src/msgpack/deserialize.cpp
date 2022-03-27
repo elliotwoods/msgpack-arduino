@@ -114,25 +114,30 @@ namespace msgpack {
 	//----------
 	bool readMapSize(Stream & stream, size_t & size, bool safely) {
 #ifdef MESSENGER_DEBUG_INCOMING
-		msgpack::writeMapSize4(stream, 1);
-		msgpack::writeString(stream, "Chk map header");
-		msgpack::writeIntU8(stream, getNextDataTypeUnsafely(stream));
-		msgpack::writeBool(stream, nextDataTypeIs(stream, DataType::Map));
+		msgpack::writeMapSize4(stream, 3);
+		{
+			msgpack::writeString(stream, "next type");
+			{
+				msgpack::writeIntU8(stream, getNextDataTypeUnsafely(stream));
+			}
+
+			msgpack::writeString(stream, "is map");
+			{
+				msgpack::writeBool(stream, nextDataTypeIs(stream, DataType::Map));
+			}
+		}
 #endif
 
 		MSGPACK_SAFETY_FORMAT_CHECK(stream, DataType::Map);
-
-#ifdef MESSENGER_DEBUG_INCOMING
-		msgpack::writeString(stream, "Rx map head");
-#endif
 
 		uint8_t header;
 		MSGPACK_SAFELY_RUN(readRaw(stream, header, safely));
 
 #ifdef MESSENGER_DEBUG_INCOMING
-		msgpack::writeMapSize4(stream, 1);
-		msgpack::writeString(stream, "Header byte");
-		msgpack::writeIntU8(stream, header);
+		msgpack::writeString(stream, "header");
+		{
+			msgpack::writeIntU8(stream, header);
+		}
 #endif
 
 		switch(header) {
@@ -268,6 +273,7 @@ namespace msgpack {
 		msgpack::writeMapSize4(stream, 1);
 		msgpack::writeString(stream, "Decoding int");
 		msgpack::writeIntU8(stream, dataFormat);
+		stream.flush();
 		#endif
 
 		switch (dataFormat)
@@ -630,11 +636,17 @@ namespace msgpack {
 
 	//----------
 	bool waitForData(Stream & stream, size_t size, long timeoutMs) {
-		const auto delayPerTry = timeoutMs / 10;
-		uint8_t tries = 0;
+		const uint8_t triesMax = 10;
+		const auto delayPerTry = timeoutMs / (long) triesMax;
+		uint8_t tryCount = 0;
 		while(stream.available() < (int) size) {
-			tries++;
-			if(tries >= 10) {
+			// For COBS EOP (end of packet)
+			if(stream.peek() == -2) {
+				// The data will never arrive so exit now
+				return false;
+			}
+			tryCount++;
+			if(tryCount >= triesMax) {
 				return false;
 			}
 			delay(delayPerTry);

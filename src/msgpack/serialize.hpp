@@ -6,67 +6,67 @@
 
 namespace msgpack {
 	//explicit functions
-	void writeNil(Stream &);
+	void writeNil(Print &);
 
-	void writeMapSize4(Stream &, const uint8_t &);
-	void writeMapSize16(Stream &, const uint16_t &);
-	void writeMapSize32(Stream &, const uint32_t &);
+	void writeMapSize4(Print &, const uint8_t &);
+	void writeMapSize16(Print &, const uint16_t &);
+	void writeMapSize32(Print &, const uint32_t &);
 
-	void writeArraySize4(Stream &, const uint8_t &);
-	void writeArraySize16(Stream &, const uint16_t &);
-	void writeArraySize32(Stream &, const uint32_t &);
+	void writeArraySize4(Print &, const uint8_t &);
+	void writeArraySize16(Print &, const uint16_t &);
+	void writeArraySize32(Print &, const uint32_t &);
 
-	void writeIntU7(Stream &, const uint8_t &);
-	void writeIntU8(Stream &, const uint8_t &);
-	void writeIntU16(Stream &, const uint16_t &);
-	void writeIntU32(Stream &, const uint32_t &);
-	void writeIntU64(Stream &, const uint64_t &);
-	void writeInt5(Stream &, const int8_t &);
-	void writeInt8(Stream &, const int8_t &);
-	void writeInt16(Stream &, const int16_t &);
-	void writeInt32(Stream &, const int32_t &);
-	void writeInt64(Stream &, const int64_t &);
+	void writeIntU7(Print &, const uint8_t &);
+	void writeIntU8(Print &, const uint8_t &);
+	void writeIntU16(Print &, const uint16_t &);
+	void writeIntU32(Print &, const uint32_t &);
+	void writeIntU64(Print &, const uint64_t &);
+	void writeInt5(Print &, const int8_t &);
+	void writeInt8(Print &, const int8_t &);
+	void writeInt16(Print &, const int16_t &);
+	void writeInt32(Print &, const int32_t &);
+	void writeInt64(Print &, const int64_t &);
 
-	void writeFloat32(Stream &, const float &);
-	void writeFloat64(Stream &, const double &);
+	void writeFloat32(Print &, const float &);
+	void writeFloat64(Print &, const double &);
 
-	void writeBool(Stream & stream, bool);
+	void writeBool(Print &, bool);
 
-	void writeString5(Stream &, const char *, uint8_t size);
-	void writeString8(Stream &, const char *, uint8_t size);
-	void writeString16(Stream &, const char *, uint16_t size);
-	void writeString32(Stream &, const char *, uint32_t size);
+	void writeString5(Print &, const char *, uint8_t size);
+	void writeString8(Print &, const char *, uint8_t size);
+	void writeString16(Print &, const char *, uint16_t size);
+	void writeString32(Print &, const char *, uint32_t size);
 
-	void writeBinary5(Stream &, const char *, uint8_t size);
-	void writeBinary8(Stream &, const char *, uint8_t size);
-	void writeBinary16(Stream &, const char *, uint16_t size);
-	void writeBinary32(Stream &, const char *, uint32_t size);
+	void writeBinary5(Print &, const char *, uint8_t size);
+	void writeBinary8(Print &, const char *, uint8_t size);
+	void writeBinary16(Print &, const char *, uint16_t size);
+	void writeBinary32(Print &, const char *, uint32_t size);
 
 	//implicit functions
-	inline void writeMapSize(Stream & stream, const uint8_t & value) { value < 1 << 4 ? writeMapSize4(stream, value) : writeMapSize16(stream, value); }
-	inline void writeMapSize(Stream & stream, const uint16_t & value) { writeMapSize16(stream, value); }
-	inline void writeMapSize(Stream & stream, const uint32_t & value) { writeMapSize32(stream, value); }
-	inline void writeArraySize(Stream & stream, const uint16_t & value) { writeArraySize16(stream, value); }
-	inline void writeArraySize(Stream & stream, const uint32_t & value) { writeArraySize32(stream, value); }
-	inline void writeInt(Stream & stream, const uint8_t & value) { writeIntU8(stream, value); }
-	inline void writeInt(Stream & stream, const uint16_t & value) { writeIntU16(stream, value); }
-	inline void writeInt(Stream & stream, const uint32_t & value) { writeIntU32(stream, value); }
-	inline void writeInt(Stream & stream, const uint64_t & value) { writeIntU64(stream, value); }
-	inline void writeInt(Stream & stream, const int8_t & value) { writeInt8(stream, value); }
-	inline void writeInt(Stream & stream, const int16_t & value) { writeInt16(stream, value); }
-	inline void writeInt(Stream & stream, const int32_t & value) { writeInt32(stream, value); }
-	inline void writeInt(Stream & stream, const int64_t & value) { writeInt64(stream, value); }
-	inline void writeFloat(Stream & stream, const float & value) { writeFloat32(stream, value); }
-	inline void writeFloat(Stream & stream, const double & value) { writeFloat64(stream, value); }
-	inline void writeString(Stream & stream, const char * value, const uint16_t & size) { writeString16(stream, value, size); }
-	inline void writeString(Stream & stream, const char * value, const uint32_t & size) { writeString32(stream, value, size); }
-	inline void writeString(Stream & stream, const char * value) { writeString32(stream, value, strlen(value)); }
-	inline void writeBinary(Stream & stream, const char * value, const uint32_t & size) { writeBinary16(stream, value, size); };
-	inline void writeBinary(Stream & stream, const char * value, const uint64_t & size) { writeBinary32(stream, value, size); };
+	inline void writeMapSize(Print & stream, const uint8_t & value) { value < 1 << 4 ? writeMapSize4(stream, value) : writeMapSize16(stream, value); }
+	inline void writeMapSize(Print & stream, const uint16_t & value) { writeMapSize16(stream, value); }
+	inline void writeMapSize(Print & stream, const uint32_t & value) { writeMapSize32(stream, value); }
+	inline void writeArraySize(Print & stream, const uint16_t & value) { writeArraySize16(stream, value); }
+	inline void writeArraySize(Print & stream, const uint32_t & value) { writeArraySize32(stream, value); }
+	inline void writeInt(Print & stream, const uint8_t & value) { writeIntU8(stream, value); }
+	inline void writeInt(Print & stream, const uint16_t & value) { writeIntU16(stream, value); }
+	inline void writeInt(Print & stream, const uint32_t & value) { writeIntU32(stream, value); }
+	inline void writeInt(Print & stream, const uint64_t & value) { writeIntU64(stream, value); }
+	inline void writeInt(Print & stream, const int8_t & value) { writeInt8(stream, value); }
+	inline void writeInt(Print & stream, const int16_t & value) { writeInt16(stream, value); }
+	inline void writeInt(Print & stream, const int32_t & value) { writeInt32(stream, value); }
+	inline void writeInt(Print & stream, const int64_t & value) { writeInt64(stream, value); }
+	inline void writeFloat(Print & stream, const float & value) { writeFloat32(stream, value); }
+	inline void writeFloat(Print & stream, const double & value) { writeFloat64(stream, value); }
+	inline void writeString(Print & stream, const char * value, const uint16_t & size) { writeString16(stream, value, size); }
+	inline void writeString(Print & stream, const char * value, const uint32_t & size) { writeString32(stream, value, size); }
+	inline void writeString(Print & stream, const char * value) { writeString32(stream, value, strlen(value)); }
+	inline void writeBinary(Print & stream, const char * value, const uint32_t & size) { writeBinary16(stream, value, size); };
+	inline void writeBinary(Print & stream, const char * value, const uint64_t & size) { writeBinary32(stream, value, size); };
 	
 	//utilities
 	template<typename DataType>
-	void writeRawReversed(Stream & stream, const DataType & value) {
+	void writeRawReversed(Print & stream, const DataType & value) {
 		const auto size = sizeof(DataType);
 		for(uint8_t i=0; i<size; i++) {
 			auto address = (size_t) (size - 1 - i);
@@ -75,10 +75,10 @@ namespace msgpack {
 	}
 
 	template<typename DataType>
-	void writeRaw(Stream & stream, const DataType & value) {
+	void writeRaw(Print & stream, const DataType & value) {
 		stream.write((char * ) & value, sizeof(DataType));
 	}
 
-	void writeRawByte(Stream & stream, const uint8_t & value);
-	void writeRaw(Stream & stream, const char * value, size_t size);
+	void writeRawByte(Print &, const uint8_t & value);
+	void writeRaw(Print &, const char * value, size_t size);
 }
