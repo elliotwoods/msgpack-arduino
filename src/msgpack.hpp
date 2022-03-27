@@ -5,3 +5,5 @@
 
 #include "msgpack/Serializer.hpp"
 #include "msgpack/Messaging.hpp"
+
+#include "msgpack/COBSRWStream.hpp"
