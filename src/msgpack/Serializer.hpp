@@ -24,6 +24,41 @@ namespace msgpack {
 			writeArraySize(this->stream, size);
 		}
 
+		template<typename Type>
+		struct KeyValuePair {
+			const char * key;
+			const Type & value;
+		};
+
+		template<typename Type>
+		inline void writeMapIterate(Type keyOrValue) {
+			this->operator<<(keyOrValue);
+		}
+
+		template<typename Type, typename... RemainingKeysAndValueTypes>
+		inline void writeMapIterate(Type keyOrValue, RemainingKeysAndValueTypes... remainingKeysAndValues) {
+			this->operator<<(keyOrValue);
+			writeMapIterate(remainingKeysAndValues...);
+		}
+
+		template<typename... KeyValueTypes>
+		inline void writeMap(KeyValueTypes... keysAndValues) {
+			// This should be auto-optimised at compile time
+			{
+				const auto halfSize = sizeof...(keysAndValues) / 2;
+				if(halfSize < (1 << 8)) {
+					this->beginMap((uint8_t) halfSize);
+				}
+				else if(halfSize < (1 << 16)) {
+					this->beginMap((uint16_t) halfSize);
+				}
+				else {
+					this->beginMap((uint32_t) halfSize);
+				}
+			}
+			this->writeMapIterate(keysAndValues...);
+		}
+
 		inline Serializer & operator<<(const char * value) {
 			writeString(this->stream, value);
 			return * this;
