@@ -25,24 +25,18 @@ namespace msgpack {
 		}
 
 		template<typename Type>
-		struct KeyValuePair {
-			const char * key;
-			const Type & value;
-		};
-
-		template<typename Type>
 		inline void writeMapIterate(Type keyOrValue) {
 			this->operator<<(keyOrValue);
 		}
 
-		template<typename Type, typename... RemainingKeysAndValueTypes>
-		inline void writeMapIterate(Type keyOrValue, RemainingKeysAndValueTypes... remainingKeysAndValues) {
+		template<typename Type, typename... KeyValueTypes>
+		inline void writeMapIterate(Type keyOrValue, const KeyValueTypes & ... remainingKeysAndValues) {
 			this->operator<<(keyOrValue);
 			writeMapIterate(remainingKeysAndValues...);
 		}
 
 		template<typename... KeyValueTypes>
-		inline void writeMap(KeyValueTypes... keysAndValues) {
+		inline void writeMap(const KeyValueTypes & ... keysAndValues) {
 			// This should be auto-optimised at compile time
 			{
 				const auto halfSize = sizeof...(keysAndValues) / 2;
