@@ -2,7 +2,7 @@
 
 namespace msgpack {
 	//----------
-	Serializer::Serializer(Stream & stream)
+	Serializer::Serializer(Print & stream)
 	: stream(stream) {
 
 	}

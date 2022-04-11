@@ -6,7 +6,7 @@
 namespace msgpack {
 	class Serializer {
 	public:
-		Serializer(Stream &);
+		Serializer(Print &);
 
 		inline Serializer & operator<<(Messaging & messaging) {
 			writeString(this->stream, messaging.getTypeName());
@@ -16,12 +16,28 @@ namespace msgpack {
 
 		template<typename IntType>
 		inline void beginMap(const IntType & size) {
-			writeMapSize(this->stream, size);
+			if(size < (1 << 4)) {
+				writeMapSize4(stream, size);
+			}
+			else if(size < (1 << 16)) {
+				writeMapSize16(stream, size);
+			}
+			else {
+				writeMapSize32(stream, size);
+			}
 		}
 
 		template<typename IntType>
 		inline void beginArray(const IntType & size) {
-			writeArraySize(this->stream, size);
+			if(size < (1 << 4)) {
+				writeArraySize4(stream, size);
+			}
+			else if(size < (1 << 16)) {
+				writeArraySize16(stream, size);
+			}
+			else {
+				writeArraySize32(stream, size);
+			}
 		}
 
 		template<typename Type>
@@ -113,11 +129,11 @@ namespace msgpack {
 			return * this;
 		}
 
-		inline Stream & operator()() {
+		inline Print & operator()() {
 			return this->stream;
 		}
 	protected:
-		Stream & stream;
+		Print & stream;
 	};
 }
 

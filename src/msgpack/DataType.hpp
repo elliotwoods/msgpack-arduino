@@ -32,4 +32,6 @@ namespace msgpack {
         , Extended
         , FixedExtended
     };
+
+    const char * toString(const DataType&);
 }

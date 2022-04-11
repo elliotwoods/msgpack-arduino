@@ -1,5 +1,6 @@
 #include "deserialize.hpp"
 #include "serialize.hpp"
+#include "logError.hpp"
 
 namespace msgpack {
 // Header
@@ -113,12 +114,12 @@ namespace msgpack {
 // Map
 	//----------
 	bool readMapSize(Stream & stream, size_t & size, bool safely) {
-#ifdef MESSENGER_DEBUG_INCOMING
+#ifdef MSGPACK_DEBUG_INCOMING
 		msgpack::writeMapSize4(stream, 2);
 		{
 			msgpack::writeString(stream, "next type");
 			{
-				msgpack::writeIntU8(stream, getNextDataTypeUnsafely(stream));
+				msgpack::writeString(stream, toString(getNextDataTypeUnsafely(stream)));
 			}
 
 			msgpack::writeString(stream, "is map");
@@ -134,7 +135,7 @@ namespace msgpack {
 		uint8_t header;
 		MSGPACK_SAFELY_RUN(readRaw(stream, header, safely));
 
-#ifdef MESSENGER_DEBUG_INCOMING
+#ifdef MSGPACK_DEBUG_INCOMING
 		msgpack::writeMapSize4(stream, 1);
 		{
 			msgpack::writeString(stream, "header");
@@ -192,6 +193,17 @@ namespace msgpack {
 			//fixarray
 			size = (size_t) (header & 0x0f);
 		}
+
+#ifdef MSGPACK_DEBUG_INCOMING
+		writeMapSize4(stream, 1);
+		{
+			writeString(stream, "Array size");
+			{
+				writeInt(stream, (uint32_t) size);
+			}
+		}
+		stream.flush();
+#endif
 
 		return true;
 	}
@@ -274,12 +286,12 @@ namespace msgpack {
 		DataType dataFormat;
 		MSGPACK_SAFELY_RUN(getNextDataType(stream, dataFormat, safely));
 
-		#ifdef MESSENGER_DEBUG_INCOMING
+		#ifdef MSGPACK_DEBUG_INCOMING
 		msgpack::writeMapSize4(stream, 1);
 		{
 			msgpack::writeString(stream, "Int type");
 			{
-				msgpack::writeIntU8(stream, dataFormat);
+				msgpack::writeString(stream, toString(getNextDataTypeUnsafely(stream)));
 			}
 		}
 		stream.flush();
@@ -360,6 +372,9 @@ namespace msgpack {
 			}
 			default:
 			{
+#ifdef MSGPACK_DEBUG_INCOMING
+				logErrorWithData(stream, "readInt", "dataFormat") << (uint8_t) dataFormat;
+#endif
 				return false;
 			}
 		}
@@ -394,6 +409,17 @@ namespace msgpack {
 		DataType dataFormat;
 		getNextDataType(stream, dataFormat, safely);
 
+#ifdef MSGPACK_DEBUG_INCOMING
+		msgpack::writeMapSize4(stream, 1);
+		{
+			msgpack::writeString(stream, "Float type");
+			{
+				msgpack::writeString(stream, toString(getNextDataTypeUnsafely(stream)));
+			}
+		}
+		stream.flush();
+#endif
+
 		switch (dataFormat)
 		{
 			case DataType::Float32:
@@ -412,6 +438,17 @@ namespace msgpack {
 			}
 			default:
 			{
+				// Try to deserialize as an int if we couldn't find a float type
+				{
+					int32_t specificValue;
+					if(readInt(stream, specificValue)) {
+						value = (OutputType) specificValue;
+						return true;
+					}
+				}
+#ifdef MSGPACK_DEBUG_INCOMING
+				logErrorWithData(stream, "readFloat", "dataFormat") << (uint8_t) dataFormat;
+#endif
 				return false;
 			}
 		}
@@ -512,6 +549,9 @@ namespace msgpack {
 				return true;
 			}
 			default:
+#ifdef MSGPACK_DEBUG_INCOMING
+				logErrorWithData(stream, "readString", "dataFormat") << (uint8_t) dataFormat;
+#endif
 				return false;
 		}
 	}
@@ -575,10 +615,11 @@ namespace msgpack {
 				return true;
 			}
 			default:
-				break;
+#ifdef MSGPACK_DEBUG_INCOMING
+				logErrorWithData(stream, "readStringNewC", "dataFormat") << (uint8_t) dataFormat;
+#endif
+				return false;
 		}
-
-		return false;
 	}
 
 // Binary
@@ -638,6 +679,9 @@ namespace msgpack {
 			}
 			default:
 			{
+#ifdef MSGPACK_DEBUG_INCOMING
+				logErrorWithData(stream, "readBinary", "dataFormat") << (uint8_t) dataFormat;
+#endif
 				return false;
 			}
 		}
@@ -649,13 +693,20 @@ namespace msgpack {
 		const auto delayPerTry = timeoutMs / (long) triesMax;
 		uint8_t tryCount = 0;
 		while(stream.available() < (int) size) {
-			// For COBS EOP (end of packet)
-			if(stream.peek() == -2) {
-				// The data will never arrive so exit now
-				return false;
+#ifdef MSGPACK_DEBUG_INCOMING
+			writeMapSize4(stream, 1);
+			{
+				writeString(stream, "Waiting for data try");
+				{
+					writeIntU8(stream, tryCount);
+				}
 			}
+#endif			
 			tryCount++;
 			if(tryCount >= triesMax) {
+#ifdef MSGPACK_DEBUG_INCOMING
+				logError(stream, "waitForData", "timeout waiting for data");
+#endif
 				return false;
 			}
 			delay(delayPerTry);

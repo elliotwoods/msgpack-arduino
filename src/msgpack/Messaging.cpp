@@ -10,8 +10,14 @@ namespace msgpack {
 	bool Messaging::processIncoming(Stream & stream) {
 		const bool safely = true;
 
-#ifdef MESSENGER_DEBUG_INCOMING
-		msgpack::writeString(stream, "processIncoming");
+#ifdef MSGPACK_DEBUG_INCOMING
+		msgpack::writeMapSize4(stream, 1);
+		{
+			msgpack::writeString(stream, "processIncoming for");
+			{
+				msgpack::writeString(stream, this->getTypeName());
+			}
+		}
 		stream.flush();
 #endif
 
@@ -19,7 +25,7 @@ namespace msgpack {
 		MSGPACK_SAFELY_RUN(msgpack::readMapSize(stream, mapSize));
 
 		
-#ifdef MESSENGER_DEBUG_INCOMING
+#ifdef MSGPACK_DEBUG_INCOMING
 		msgpack::writeMapSize4(stream, 1);
 		{
 			msgpack::writeString(stream, "map size");
@@ -35,7 +41,7 @@ namespace msgpack {
 			size_t stringSize;
 			MSGPACK_SAFELY_RUN(msgpack::readString(stream, key, 100, stringSize));
 
-#ifdef MESSENGER_DEBUG_INCOMING
+#ifdef MSGPACK_DEBUG_INCOMING
 			msgpack::writeMapSize4(stream, 1);
 			{
 				msgpack::writeString(stream, "key");

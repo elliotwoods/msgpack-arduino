@@ -73,7 +73,7 @@ namespace msgpack {
 			if(!this->receive.endOfPacketReachedWithinBuffer) {
 				// Try to see the EOP
 				auto data = this->stream.read();
-				while(data != -1) {
+				while(data >= 0) {
 					if(data == 0x0) {
 						break;
 					}
