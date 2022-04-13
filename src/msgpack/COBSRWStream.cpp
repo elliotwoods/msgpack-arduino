@@ -21,6 +21,7 @@ namespace msgpack {
 	COBSRWStream::available()
 	{
 		this->decodeIncoming();
+		
 		return this->receive.bufferWritePosition - this->receive.bufferReadPosition;
 	}
 
@@ -28,6 +29,10 @@ namespace msgpack {
 	int
 	COBSRWStream::read()
 	{
+		if(this->receive.bufferReadPosition == this->receive.bufferWritePosition) {
+			this->decodeIncoming();
+		}
+
 		if(this->receive.bufferReadPosition < this->receive.bufferWritePosition) {
 			const auto readPosition = this->receive.bufferReadPosition++;
 			return this->receive.decodedBuffer[readPosition];
@@ -41,6 +46,10 @@ namespace msgpack {
 	int
 	COBSRWStream::peek()
 	{
+		if(this->receive.bufferReadPosition == this->receive.bufferWritePosition) {
+			this->decodeIncoming();
+		}
+
 		if(this->receive.bufferReadPosition < this->receive.bufferWritePosition) {
 			return this->receive.decodedBuffer[this->receive.bufferReadPosition];
 		}
@@ -60,7 +69,7 @@ namespace msgpack {
 	bool
 	COBSRWStream::isEndOfIncomingPacket() const
 	{
-		return this->receive.endOfPacketReachedWithinBuffer
+		return this->receive.incomingStreamIsAtStartOfNextPacket
 			&& (this->receive.bufferReadPosition == this->receive.bufferWritePosition);
 	}
 
@@ -70,15 +79,16 @@ namespace msgpack {
 	{
 		if(this->receive.skipToNextPacket) {
 			// Did we see EOP?
-			if(!this->receive.endOfPacketReachedWithinBuffer) {
+			if(!this->receive.incomingStreamIsAtStartOfNextPacket) {
 				// Try to see the EOP
-				auto data = this->stream.read();
-				while(data >= 0) {
+				while(stream.available() > 0) {
+					auto data = this->stream.read();
 					if(data == 0x0) {
+						this->receive.incomingStreamIsAtStartOfNextPacket = true;
 						break;
 					}
 				}
-				if(data == -1) {
+				if(!this->receive.incomingStreamIsAtStartOfNextPacket) {
 					// We reached EOF before seeing EOP
 					// Nothing more we can do here
 					return;
@@ -88,14 +98,14 @@ namespace msgpack {
 			// We've seen EOP and can now start again
 			this->receive.bufferReadPosition = 0;
 			this->receive.bufferWritePosition = 0;
-			this->receive.endOfPacketReachedWithinBuffer = false;
+			this->receive.incomingStreamIsAtStartOfNextPacket = false;
 			this->receive.skipToNextPacket = false;
 			this->receive.bytesUntilNextZero = 0;
-			this->receive.startOfStream = true;
+			this->receive.chunkLength = 0xFF;
 		}
 
 		// Check if we've seen an EOP
-		if(this->receive.endOfPacketReachedWithinBuffer) {
+		if(this->receive.incomingStreamIsAtStartOfNextPacket) {
 			// We don't continue if we've seen an EOP until user skips to next packet
 			return;
 		}
@@ -106,43 +116,37 @@ namespace msgpack {
 		
 		// Perform the decode
 		{
-			// Get next byte from serial
-			auto incomingData = this->stream.read();
-
 			// Whilst there's data and decoded buffer space available
-			while(incomingData != -1
+			while(this->stream.available() > 0
 				&& this->receive.bufferWritePosition < MSGPACK_COBSRWSTREAM_BUFFER_SIZE) {
+
+				// Get next byte from serial
+				const auto incomingData = this->stream.read();
 
 				if(incomingData == 0x0) {
 					// EOP reached
-					this->receive.endOfPacketReachedWithinBuffer = true;
+					this->receive.incomingStreamIsAtStartOfNextPacket = true;
 				}
 				else {
-					// Decode into the buffer
-					if(this->receive.bytesUntilNextZero == 0) {
-						if(incomingData == 0xFF) {
-							this->receive.bytesUntilNextZero = 0xFF;
+					// This is a pointer (zero, star of stream, or start of chunk)
+					if (this->receive.bytesUntilNextZero == 0) {
+						// Also it's a zero byte
+						if(this->receive.chunkLength != 0xFF) {
+							this->receive.decodedBuffer[this->receive.bufferWritePosition] = 0x0;
+							this->receive.bufferWritePosition++;
 						}
-						else {
-							// This is a zero
-							this->receive.bytesUntilNextZero = (uint8_t) incomingData;
 
-							if(!this->receive.startOfStream) {
-								this->receive.decodedBuffer[this->receive.bufferWritePosition] = 0x0;
-								this->receive.bufferWritePosition++;
-							}
-						}
-						this->receive.startOfStream = false;
+						this->receive.bytesUntilNextZero = (uint8_t) incomingData;
+						this->receive.chunkLength = (uint8_t) incomingData;
 					}
+					// This is a non-zero byte
 					else {
-						// This is a non-zero byte
 						this->receive.decodedBuffer[this->receive.bufferWritePosition] = incomingData;
 						this->receive.bufferWritePosition++;
 					}
-				}
 
-				this->receive.bytesUntilNextZero--;
-				incomingData = this->stream.read();
+					this->receive.bytesUntilNextZero--;
+				}
 			}
 		}
 	}
@@ -157,7 +161,7 @@ namespace msgpack {
 			// Move the data to the start of buffer
 			if (decodedSize > 0) {
 				// Copy into the other buffer
-				memcpy(this->receive.decodedBufferBack
+				std::memcpy(this->receive.decodedBufferBack
 					, this->receive.decodedBuffer + this->receive.bufferReadPosition
 					, decodedSize);
 
@@ -181,16 +185,17 @@ namespace msgpack {
 	size_t
 	COBSRWStream::write(uint8_t data)
 	{
-		if(data == 0x0) {
-			this->writeBuffer();
-		}
-		else {
+		if(data != 0x0) {
 			this->transmit.plainTextBuffer[this->transmit.writePosition] = data;
 			this->transmit.writePosition++;
-		}
-		
 
-		if(this->transmit.writePosition == sizeof(this->transmit.plainTextBuffer)) {
+			// check if buffer is full
+			if(this->transmit.writePosition == sizeof(this->transmit.plainTextBuffer)) {
+				// Writing the buffer with length+1 of 0xFF doesn't count as a zero
+				this->writeBuffer();
+			}
+		}
+		else {
 			this->writeBuffer();
 		}
 

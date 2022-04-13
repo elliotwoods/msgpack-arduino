@@ -1,7 +1,9 @@
 #pragma once
 
 #define MSGPACK_COBSRWSTREAM_BUFFER_SIZE 64
-#include <Arduino.h>
+#include "Platform.h"
+#include <stdint.h>
+
 namespace msgpack {
 	class COBSRWStream : public Stream {
 	public:
@@ -31,7 +33,7 @@ namespace msgpack {
 		//
 		size_t write(uint8_t) override;
 		size_t write(const uint8_t *buffer, size_t size);
-		int availableForWrite(void) override;
+		int availableForWrite(void);
 		void flush() override; // This also writes an EOP
 
 		// Custom write functions
@@ -49,13 +51,14 @@ namespace msgpack {
 			uint8_t bufferReadPosition = 0;
 
 			// When this is true:
-			//	- We will not decode any more
+			//	- User can still be reading previous packet from our buffer
+			//	- We will not decode any more from incoming buffer
 			//	- The end of packet occurs when write position = read position
-			bool endOfPacketReachedWithinBuffer = false;
+			bool incomingStreamIsAtStartOfNextPacket = false;
 
 			// COBS encoding
 			uint8_t bytesUntilNextZero = 0;
-			bool startOfStream = true;
+			uint8_t chunkLength = 0xFF;
 
 			bool skipToNextPacket = false;
 		} receive;

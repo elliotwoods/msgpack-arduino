@@ -558,14 +558,20 @@ namespace msgpack {
 
 	//----------
 	String readStringNew(Stream &stream, bool safely) {
-		char* buffer = readStringNewC(stream, safely);
-		String result(buffer);
-		delete buffer;
-		return result;
+		char* buffer = nullptr;
+		if(readStringNewC(stream, buffer, safely)) {
+			String result(buffer);
+			delete buffer;
+			return result;
+		}
+		else {
+			// We return an empty string if deserialisation fails
+			return String();
+		}
 	}
 
 	//----------
-	bool readStringNewC(Stream &stream, bool safely, char * & string) {
+	bool readStringNewC(Stream &stream, char * & string, bool safely) {
 		DataType	dataFormat;
 		char*			value = nullptr;
 		getNextDataType(stream, dataFormat, safely);

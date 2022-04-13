@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Arduino.h"
+#include "Platform.h"
 #include "constants.h"
 
 namespace msgpack {

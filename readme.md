@@ -31,6 +31,15 @@ These are essentially 'comparing a one-byte value once more than necessary', so 
 
 Also i believe that the `getNextDataType() == XX` will also be optimised away to be equivalent to `getNextDataTypeIsXX()`.
 
+Debugging on desktop
+--------------------
+
+For debugging the library itself, we have a number of tests in the tests folder. The intention is to run these in 'native' or related platforms so that they can be debugged.
+
+For Windows usage, it's necessary to have MinGW installed with GCC and GDB. We can use the `windows_x86` platform, but then we don't have GDB, which means you can't actually debug.
+
+ Currently we run these on windows, hence adding platformio/toolchain-gccmingw32@^1.40900.0 to the platform_packages section of platform.io in this repo.
+
 License
 -------
 MIT license

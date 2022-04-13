@@ -1,7 +1,6 @@
 #pragma once
 
 #include <stdint.h>
-#include "Arduino.h"
 
 namespace msgpack {
     enum DataType : uint8_t {

@@ -1,0 +1,12 @@
+{
+	"files.associations": {
+		"*.cps": "javascript",
+		"*.h": "cpp",
+		"*.tcc": "cpp",
+		"ostream": "cpp",
+		"deque": "cpp",
+		"array": "cpp",
+		"initializer_list": "cpp",
+		"utility": "cpp"
+	}
+}

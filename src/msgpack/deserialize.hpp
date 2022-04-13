@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Arduino.h"
+#include "Platform.h"
 #include "DataType.hpp"
 #include "constants.h"
 
@@ -44,7 +44,7 @@ namespace msgpack {
 	bool readString32(Stream &, char *, const uint32_t & allocation, uint32_t & outputSize, bool safely = true);
 	bool readString(Stream &, char *, const size_t & allocation, size_t & outputSize, bool safely = true);
 	String readStringNew(Stream &, bool safely = true);
-	char* readStringNewC(Stream &, bool safely = true);
+	bool readStringNewC(Stream &, char * & string, bool safely = true);
 
 	bool readBinary8(Stream &, char *, const uint8_t & allocation, uint8_t & outputSize, bool safely = true);
 	bool readBinary16(Stream &, char *, const uint16_t & allocation, uint16_t & outputSize, bool safely = true);
