@@ -161,7 +161,7 @@ namespace msgpack {
 			// Move the data to the start of buffer
 			if (decodedSize > 0) {
 				// Copy into the other buffer
-				std::memcpy(this->receive.decodedBufferBack
+				memcpy(this->receive.decodedBufferBack
 					, this->receive.decodedBuffer + this->receive.bufferReadPosition
 					, decodedSize);
 
