@@ -22,8 +22,8 @@ namespace msgpack {
 
 		// Custom read functions
 		void nextIncomingPacket();
+		bool isStartOfIncomingPacket() const;
 		bool isEndOfIncomingPacket() const;
-
 		//
 		//--
 
@@ -55,6 +55,10 @@ namespace msgpack {
 			//	- We will not decode any more from incoming buffer
 			//	- The end of packet occurs when write position = read position
 			bool incomingStreamIsAtStartOfNextPacket = false;
+
+			// This denotes whether the user begin decoding the data
+			// as if it is the start of the packet
+			bool outgoingStreamIsAtStartOfNextPacket = true;
 
 			// COBS encoding
 			uint8_t bytesUntilNextZero = 0;

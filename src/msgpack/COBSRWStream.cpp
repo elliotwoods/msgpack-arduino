@@ -35,6 +35,7 @@ namespace msgpack {
 
 		if(this->receive.bufferReadPosition < this->receive.bufferWritePosition) {
 			const auto readPosition = this->receive.bufferReadPosition++;
+			this->receive.outgoingStreamIsAtStartOfNextPacket = false;
 			return this->receive.decodedBuffer[readPosition];
 		}
 		else {
@@ -63,6 +64,13 @@ namespace msgpack {
 	COBSRWStream::nextIncomingPacket()
 	{
 		this->receive.skipToNextPacket = true;
+	}
+
+	//----------
+	bool
+	COBSRWStream::isStartOfIncomingPacket() const
+	{
+		return this->receive.outgoingStreamIsAtStartOfNextPacket;
 	}
 
 	//----------
@@ -99,6 +107,7 @@ namespace msgpack {
 			this->receive.bufferReadPosition = 0;
 			this->receive.bufferWritePosition = 0;
 			this->receive.incomingStreamIsAtStartOfNextPacket = false;
+			this->receive.outgoingStreamIsAtStartOfNextPacket = true;
 			this->receive.skipToNextPacket = false;
 			this->receive.bytesUntilNextZero = 0;
 			this->receive.chunkLength = 0xFF;
