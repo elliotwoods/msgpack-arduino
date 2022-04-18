@@ -53,7 +53,9 @@ namespace msgpack {
 #endif
 
 			if (!this->processIncomingByKey(key, stream)) {
-				msgpack::logErrorWithData(stream, "Messaging::processIncoming", "couldn't deserialise with key") << key;
+				char data[100];
+				sprintf(data, "Module [%s] : Key [%s]", this->getTypeName(), key);
+				msgpack::logErrorWithData(stream, "Messaging::processIncoming", "couldn't deserialise with key") << data;
 				return false;
 			}
 		}

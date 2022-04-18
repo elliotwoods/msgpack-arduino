@@ -3,7 +3,7 @@
 // Add this define when you need to debug your deserialisation routines.
 // It will result in many msgpack debug messages being sent over serial (in no particular format)
 // NB : suggest you disable any of your other outgoing messsages whilst this flag is defined
-#define MSGPACK_DEBUG_INCOMING
+//#define MSGPACK_DEBUG_INCOMING
 
 // Note that the 'safely' here is generally in the function arguments
 
