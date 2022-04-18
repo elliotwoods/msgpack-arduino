@@ -138,7 +138,7 @@ namespace msgpack {
 #ifdef MSGPACK_DEBUG_INCOMING
 		msgpack::writeMapSize4(stream, 1);
 		{
-			msgpack::writeString(stream, "header");
+			msgpack::writeString(stream, "Map header");
 			{
 				msgpack::writeIntU8(stream, header);
 			}
@@ -177,13 +177,13 @@ namespace msgpack {
 		MSGPACK_SAFELY_RUN(readRawReversed(stream, header));
 
 		switch(header) {
-		case 0xde:
+		case 0xdc:
 			//array 16:
 			uint16_t size16;
 			MSGPACK_SAFELY_RUN(readRawReversed(stream, size16));
 			size = (size_t) size16;
 			break;
-		case 0xdf:
+		case 0xdd:
 			//array 32
 			uint32_t size32;
 			MSGPACK_SAFELY_RUN(readRawReversed(stream, size32));

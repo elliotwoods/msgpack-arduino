@@ -56,7 +56,6 @@ namespace msgpack {
 				writeString5(stream, "data", 4);
 				return ErrorSerializer(stream);
 			}
-			
 		}
 	}
 }

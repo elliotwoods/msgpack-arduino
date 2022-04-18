@@ -7,3 +7,5 @@
 #include "msgpack/Messaging.hpp"
 
 #include "msgpack/COBSRWStream.hpp"
+
+#include "msgpack/logError.hpp"

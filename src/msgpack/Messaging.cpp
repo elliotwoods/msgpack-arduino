@@ -3,7 +3,7 @@
 
 #include "serialize.hpp"
 #include "Serializer.hpp"
-
+#include "logError.hpp"
 
 namespace msgpack {
 	//----------
@@ -53,6 +53,7 @@ namespace msgpack {
 #endif
 
 			if (!this->processIncomingByKey(key, stream)) {
+				msgpack::logErrorWithData(stream, "Messaging::processIncoming", "couldn't deserialise with key") << key;
 				return false;
 			}
 		}
