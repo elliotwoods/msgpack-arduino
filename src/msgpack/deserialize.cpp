@@ -73,7 +73,7 @@ namespace msgpack {
 		if(nextByte >= 0x80 && nextByte <= 0x8f) {
 			return DataType::Map;
 		}
-		if(nextByte >= 0x90 && nextByte <= 0x9d) {
+		if(nextByte >= 0x90 && nextByte <= 0x9f) {
 			return DataType::Array;
 		}
 		if(nextByte >= 0xa0 && nextByte <= 0xbf) {

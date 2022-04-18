@@ -64,6 +64,7 @@ namespace msgpack {
 	COBSRWStream::nextIncomingPacket()
 	{
 		this->receive.skipToNextPacket = true;
+		this->decodeIncoming();
 	}
 
 	//----------
@@ -96,21 +97,23 @@ namespace msgpack {
 						break;
 					}
 				}
-				if(!this->receive.incomingStreamIsAtStartOfNextPacket) {
-					// We reached EOF before seeing EOP
-					// Nothing more we can do here
-					return;
-				}
 			}
 
 			// We've seen EOP and can now start again
-			this->receive.bufferReadPosition = 0;
-			this->receive.bufferWritePosition = 0;
-			this->receive.incomingStreamIsAtStartOfNextPacket = false;
-			this->receive.outgoingStreamIsAtStartOfNextPacket = true;
-			this->receive.skipToNextPacket = false;
-			this->receive.bytesUntilNextZero = 0;
-			this->receive.chunkLength = 0xFF;
+			if(this->receive.incomingStreamIsAtStartOfNextPacket) {
+				this->receive.bufferReadPosition = 0;
+				this->receive.bufferWritePosition = 0;
+				this->receive.incomingStreamIsAtStartOfNextPacket = false;
+				this->receive.outgoingStreamIsAtStartOfNextPacket = true;
+				this->receive.skipToNextPacket = false;
+				this->receive.bytesUntilNextZero = 0;
+				this->receive.chunkLength = 0xFF;
+			}
+
+			// We haven't seen EOP and user wants next packet, so will try again next time
+			else {
+				return;
+			}
 		}
 
 		// Check if we've seen an EOP
@@ -135,9 +138,12 @@ namespace msgpack {
 				if(incomingData == 0x0) {
 					// EOP reached
 					this->receive.incomingStreamIsAtStartOfNextPacket = true;
+
+					// We don't want to decode any more
+					break;
 				}
 				else {
-					// This is a pointer (zero, star of stream, or start of chunk)
+					// This is a pointer (zero, start of stream, or start of chunk)
 					if (this->receive.bytesUntilNextZero == 0) {
 						// Also it's a zero byte
 						if(this->receive.chunkLength != 0xFF) {
