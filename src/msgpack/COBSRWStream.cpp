@@ -117,7 +117,8 @@ namespace msgpack {
 		}
 
 		// Check if we've seen an EOP
-		if(this->receive.incomingStreamIsAtStartOfNextPacket) {
+		if(this->receive.incomingStreamIsAtStartOfNextPacket
+			&& !this->receive.outgoingStreamIsAtStartOfNextPacket) {
 			// We don't continue if we've seen an EOP until user skips to next packet
 			return;
 		}
