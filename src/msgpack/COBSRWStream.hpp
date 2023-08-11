@@ -1,7 +1,7 @@
 #pragma once
 
 #define MSGPACK_COBSRWSTREAM_BUFFER_SIZE 64
-#include "Platform.h"
+#include "Platform.hpp"
 #include <stdint.h>
 
 namespace msgpack {

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Platform.h"
 #include "DataType.hpp"
 #include "constants.h"
+#include "Platform.hpp"
 
 namespace msgpack {
 	DataType getNextDataTypeUnsafely(Stream &);
@@ -46,10 +46,10 @@ namespace msgpack {
 	String readStringNew(Stream &, bool safely = true);
 	bool readStringNewC(Stream &, char * & string, bool safely = true);
 
-	bool readBinary8(Stream &, char *, const uint8_t & allocation, uint8_t & outputSize, bool safely = true);
-	bool readBinary16(Stream &, char *, const uint16_t & allocation, uint16_t & outputSize, bool safely = true);
-	bool readBinary32(Stream &, char *, const uint32_t & allocation, uint32_t & outputSize, bool safely = true);
-	bool readBinary(Stream &, char *, const size_t & allocation, size_t & outputSize, bool safely = true);
+	bool readBinarySize8(Stream &, uint8_t & outputSize, bool safely = true);
+	bool readBinarySize16(Stream &, uint16_t & outputSize, bool safely = true);
+	bool readBinarySize32(Stream &, uint32_t & outputSize, bool safely = true);
+	bool readBinarySize(Stream &, uint16_t & outputSize, bool safely = true);
 
 	bool waitForData(Stream & stream, size_t size, long timeoutMs = 100);
 

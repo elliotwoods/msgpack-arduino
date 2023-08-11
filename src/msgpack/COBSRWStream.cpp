@@ -1,4 +1,5 @@
 #include "COBSRWStream.hpp"
+#include <string.h>
 
 namespace msgpack {
 	//----------
@@ -64,6 +65,7 @@ namespace msgpack {
 	COBSRWStream::nextIncomingPacket()
 	{
 		this->receive.skipToNextPacket = true;
+		this->receive.outgoingStreamIsAtStartOfNextPacket = false;
 		this->decodeIncoming();
 	}
 

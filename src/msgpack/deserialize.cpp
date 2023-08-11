@@ -630,34 +630,31 @@ namespace msgpack {
 
 // Binary
 	//----------
-	bool readBinary8(Stream & stream, char * value, const uint8_t & allocation, uint8_t & outputSize, bool safely) {
+	bool readBinarySize8(Stream & stream, uint8_t & outputSize, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(stream, DataType::Binary8);
 		stream.read();
 		MSGPACK_SAFELY_RUN(readRaw(stream, outputSize, safely));
-		MSGPACK_SAFETY_CHECK(allocation >= outputSize);
-		return readRaw(stream, value, outputSize, safely);
+		return true;
 	}
 
 	//----------
-	bool readBinary16(Stream & stream, char * value, const uint16_t & allocation, uint16_t & outputSize, bool safely) {
+	bool readBinarySize16(Stream & stream, uint16_t & outputSize, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(stream, DataType::Binary16);
 		stream.read();
 		MSGPACK_SAFELY_RUN(readRawReversed(stream, outputSize, safely));
-		MSGPACK_SAFETY_CHECK(allocation >= outputSize);
-		return readRaw(stream, value, outputSize, safely);
+		return true;
 	}
 
 	//----------
-	bool readBinary32(Stream & stream, char * value, const uint32_t & allocation, uint32_t & outputSize, bool safely) {
+	bool readBinarySize32(Stream & stream, uint32_t & outputSize, bool safely) {
 		MSGPACK_SAFETY_FORMAT_CHECK(stream, DataType::Binary32);
 		stream.read();
 		MSGPACK_SAFELY_RUN(readRawReversed(stream, outputSize, safely));
-		MSGPACK_SAFETY_CHECK(allocation >= outputSize);
-		return readRaw(stream, value, outputSize, safely);
+		return true;
 	}
 
 	//----------
-	bool readBinary(Stream & stream, char * value, const size_t & allocation, size_t & outputSize, bool safely) {
+	bool readBinarySize(Stream & stream, uint16_t & outputSize, bool safely) {
 		DataType dataFormat;
 		getNextDataType(stream, dataFormat, safely);
 
@@ -665,22 +662,22 @@ namespace msgpack {
 			case DataType::Binary8:
 			{
 				uint8_t specificOutputSize;
-				MSGPACK_SAFELY_RUN(readBinary8(stream, value, (uint8_t) allocation, specificOutputSize, safely));
-				outputSize = (size_t) specificOutputSize;
+				MSGPACK_SAFELY_RUN(readBinarySize8(stream, specificOutputSize, safely));
+				outputSize = (uint16_t) specificOutputSize;
 				return true;
 			}
 			case DataType::Binary16:
 			{
 				uint16_t specificOutputSize;
-				MSGPACK_SAFELY_RUN(readBinary16(stream, value, (uint16_t) allocation, specificOutputSize, safely));
-				outputSize = (size_t) specificOutputSize;
+				MSGPACK_SAFELY_RUN(readBinarySize16(stream, specificOutputSize, safely));
+				outputSize = (uint16_t) specificOutputSize;
 				return true;
 			}
 			case DataType::Binary32:
 			{
 				uint32_t specificOutputSize;
-				MSGPACK_SAFELY_RUN(readBinary32(stream, value, (uint32_t) allocation, specificOutputSize, safely));
-				outputSize = (size_t) specificOutputSize;
+				MSGPACK_SAFELY_RUN(readBinarySize32(stream, specificOutputSize, safely));
+				outputSize = (uint16_t) specificOutputSize;
 				return true;
 			}
 			default:
@@ -698,7 +695,8 @@ namespace msgpack {
 		const uint8_t triesMax = 10;
 		const auto delayPerTry = timeoutMs / (long) triesMax;
 		uint8_t tryCount = 0;
-		while(stream.available() < (int) size) {
+		auto available = stream.available();
+		while(available < (int) size) {
 #ifdef MSGPACK_DEBUG_INCOMING
 			writeMapSize4(stream, 1);
 			{
@@ -716,6 +714,7 @@ namespace msgpack {
 				return false;
 			}
 			delay(delayPerTry);
+			available = stream.available();
 		}
 		return true;
 	}
