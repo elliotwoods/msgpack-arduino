@@ -5,6 +5,9 @@
 #include "Serializer.hpp"
 #include "logError.hpp"
 
+#include <stdio.h>
+#include <string.h>
+
 namespace msgpack {
 	//----------
 	bool Messaging::processIncoming(Stream & stream) {
@@ -53,7 +56,7 @@ namespace msgpack {
 #endif
 
 			if (!this->processIncomingByKey(key, stream)) {
-				char data[100];
+				char data[150];
 				sprintf(data, "Module [%s] : Key [%s]", this->getTypeName(), key);
 				msgpack::logErrorWithData(stream, "Messaging::processIncoming", "couldn't deserialise with key") << data;
 				return false;

@@ -142,47 +142,47 @@ namespace msgpack {
 	void writeString5(Print & stream, const char * value, uint8_t size) {
 		size &= 0x1f;
 		writeRawByte(stream, size | 0xA0);
-		writeRaw(stream, value, size);
+		writeRaw(stream, (uint8_t*) value, size);
 	}
 
 	//----------
 	void writeString8(Print & stream, const char * value, uint8_t size) {
 		writeRawByte(stream, 0xd9);
 		writeRawByte(stream, size);
-		writeRaw(stream, value, size);
+		writeRaw(stream, (uint8_t*) value, size);
 	}
 
 	//----------
 	void writeString16(Print & stream, const char * value, uint16_t size) {
 		writeRawByte(stream, 0xda);
 		writeRawReversed(stream, size);
-		writeRaw(stream, value, size);
+		writeRaw(stream, (uint8_t*) value, size);
 	}
 
 	//----------
 	void writeString32(Print & stream, const char * value, uint32_t size) {
 		writeRawByte(stream, 0xdb);
 		writeRawReversed(stream, size);
-		writeRaw(stream, value, size);
+		writeRaw(stream, (uint8_t*) value, size);
 	}
 		
 // Binary
 	//----------
-	void writeBinary8(Print & stream, const char * value, uint8_t size) {
+	void writeBinary8(Print & stream, const uint8_t * value, uint8_t size) {
 		writeRawByte(stream, 0xc4);
 		writeRawByte(stream, size);
 		writeRaw(stream, value, size);
 	}
 
 	//----------
-	void writeBinary16(Print & stream, const char * value, uint16_t size) {
+	void writeBinary16(Print & stream, const uint8_t * value, uint16_t size) {
 		writeRawByte(stream, 0xc5);
 		writeRawReversed(stream, size);
 		writeRaw(stream, value, size);
 	}
 
 	//----------
-	void writeBinary32(Print & stream, const char * value, uint32_t size) {
+	void writeBinary32(Print & stream, const uint8_t * value, uint32_t size) {
 		writeRawByte(stream, 0xc6);
 		writeRawReversed(stream, size);
 		writeRaw(stream, value, size);
@@ -194,7 +194,7 @@ namespace msgpack {
 	}
 
 	//----------
-	void writeRaw(Print & stream, const char * value, size_t size) {
+	void writeRaw(Print & stream, const uint8_t * value, size_t size) {
 		stream.write(value, size);
 	}
 }

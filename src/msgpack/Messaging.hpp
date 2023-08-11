@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Platform.h"
 #include "constants.h"
+#include "Platform.hpp"
 
 namespace msgpack {
 	class Serializer;

@@ -1,8 +1,10 @@
 #pragma once
 
-#include "Platform.h"
 #include "DataType.hpp"
+
 #include <float.h>
+#include <string.h>
+#include "Platform.hpp"
 
 namespace msgpack {
 	//explicit functions
@@ -76,9 +78,9 @@ namespace msgpack {
 
 	template<typename DataType>
 	void writeRaw(Print & stream, const DataType & value) {
-		stream.write((char * ) & value, sizeof(DataType));
+		stream.write((uint8_t * ) & value, sizeof(DataType));
 	}
 
 	void writeRawByte(Print &, const uint8_t & value);
-	void writeRaw(Print &, const char * value, size_t size);
+	void writeRaw(Print &, const uint8_t * value, size_t size);
 }
