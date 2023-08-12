@@ -70,6 +70,11 @@ namespace msgpack {
 	bool Messaging::matchesKey(const char * key) {
 		return strcmp(key, this->getTypeName()) == 0;
 	}
+
+	//----------
+	bool Messaging::processIncomingByKey(const char* key, Stream&) {
+		return false;
+	}
 }
 
 
