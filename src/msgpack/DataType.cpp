@@ -60,4 +60,17 @@ namespace msgpack {
 			return "Unknown";
 		}
 	}
+
+	//----------
+	bool isInt(const DataType& dataType)
+	{
+		return dataType == DataType::UInt7
+			|| dataType == DataType::UInt8
+			|| dataType == DataType::UInt16
+			|| dataType == DataType::UInt32
+			|| dataType == DataType::Int5
+			|| dataType == DataType::Int8
+			|| dataType == DataType::Int16
+			|| dataType == DataType::Int32;
+	}
 }

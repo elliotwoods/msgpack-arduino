@@ -33,4 +33,6 @@ namespace msgpack {
     };
 
     const char * toString(const DataType&);
+
+    bool isInt(const DataType &);
 }
