@@ -1,8 +1,11 @@
 #pragma once
 
-#define MSGPACK_COBSRWSTREAM_BUFFER_SIZE 64
+// This can be smaller, e.g. 64 bytes if needed
+#define MSGPACK_COBSRWSTREAM_BUFFER_SIZE 256
+
 #include "Platform.hpp"
 #include <stdint.h>
+#include "lwrb.h"
 
 namespace msgpack {
 	class COBSRWStream : public Stream {
@@ -45,10 +48,8 @@ namespace msgpack {
 		Stream& stream;
 
 		struct {
-			uint8_t * decodedBuffer;
-			uint8_t * decodedBufferBack;
-			uint8_t bufferWritePosition = 0;
-			uint8_t bufferReadPosition = 0;
+			lwrb decodedRingBuffer;
+			uint8_t decodedRingBufferData[MSGPACK_COBSRWSTREAM_BUFFER_SIZE];
 
 			// When this is true:
 			//	- User can still be reading previous packet from our buffer
@@ -68,7 +69,6 @@ namespace msgpack {
 		} receive;
 
 		void decodeIncoming();
-		void realignIncoming();
 
 		struct {
 			uint8_t plainTextBuffer[254];

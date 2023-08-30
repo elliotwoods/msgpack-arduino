@@ -3,6 +3,7 @@
     "build" : {
         "srcFilter" : [
             "+<msgpack/*.cpp>"
+            , "+<msgpack/*.c>"
         ]
     }   
 }
