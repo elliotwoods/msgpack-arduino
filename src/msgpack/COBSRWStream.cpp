@@ -104,6 +104,14 @@ namespace msgpack {
 				this->receive.skipToNextPacket = false;
 				this->receive.bytesUntilNextZero = 0;
 				this->receive.chunkLength = 0xFF;
+
+				// clear any bytes in output buffer
+				{
+					auto bytesInBuffer = lwrb_get_full(&this->receive.decodedRingBuffer);
+					if(bytesInBuffer > 0) {
+						lwrb_skip(&this->receive.decodedRingBuffer, bytesInBuffer);
+					}
+				}
 			}
 
 			// We haven't seen EOP and user wants next packet, so will try again next time
