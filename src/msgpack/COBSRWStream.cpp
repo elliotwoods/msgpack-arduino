@@ -2,7 +2,24 @@
 #include <string.h>
 #include <assert.h>
 
+#ifdef ARDUINO
+#include "deserialize.hpp"
+#endif
+
 namespace msgpack {
+	namespace {
+		//----------
+		// CRC-16/CCITT-FALSE: poly 0x1021, init 0xFFFF, no reflection, xorout 0x0000.
+		// Known vector: crc16Update(0xFFFF, "123456789", 9) == 0x29B1.
+		uint16_t crc16Update(uint16_t crc, uint8_t byte) {
+			crc ^= (uint16_t) byte << 8;
+			for(int i = 0; i < 8; i++) {
+				crc = (crc & 0x8000) ? (uint16_t) ((crc << 1) ^ 0x1021) : (uint16_t) (crc << 1);
+			}
+			return crc;
+		}
+	}
+
 	//----------
 	COBSRWStream::COBSRWStream(Stream& stream)
 	: stream(stream)
@@ -35,6 +52,7 @@ namespace msgpack {
 			this->receive.outgoingStreamIsAtStartOfNextPacket = false;
 			uint8_t data;
 			lwrb_read(&this->receive.decodedRingBuffer, &data, 1);
+			this->receive.runningCRC = crc16Update(this->receive.runningCRC, data);
 			return (int) data;
 		}
 		else {
@@ -104,6 +122,7 @@ namespace msgpack {
 				this->receive.skipToNextPacket = false;
 				this->receive.bytesUntilNextZero = 0;
 				this->receive.chunkLength = 0xFF;
+				this->receive.runningCRC = 0xFFFF;
 
 				// clear any bytes in output buffer
 				{
@@ -170,6 +189,11 @@ namespace msgpack {
 	size_t
 	COBSRWStream::write(uint8_t data)
 	{
+		// Fold every logical byte -- including zeros -- before the COBS zero-elimination
+		// branch below, so the CRC covers exactly what the caller wrote, not the on-wire
+		// (zero-eliminated) encoding.
+		this->transmit.runningCRC = crc16Update(this->transmit.runningCRC, data);
+
 		if(data != 0x0) {
 			this->transmit.plainTextBuffer[this->transmit.writePosition] = data;
 			this->transmit.writePosition++;
@@ -231,5 +255,40 @@ namespace msgpack {
 	{
 		this->writeBuffer();
 		this->stream.write((uint8_t) 0x0);
+		this->transmit.runningCRC = 0xFFFF;
 	}
+
+#ifdef ARDUINO
+	//----------
+	bool
+	COBSRWStream::checkChecksum(uint8_t & seq)
+	{
+		// The trailer is 5 decoded bytes: seq as a forced uint8 (0xCC + 1 byte) and crc16 as a
+		// forced uint16 (0xCD + 2 bytes) -- see RS485.cpp's finishFrame(), which writes them
+		// with writeIntU8/writeIntU16 specifically so the width here is never ambiguous.
+		// Bounded wait: at 115200 baud this has almost always already arrived by the time a
+		// handler finishes reading the body, but don't hang forever if the bus has gone quiet
+		// mid-frame.
+		const uint32_t deadline = millis() + 5;
+		while(this->available() < 5) {
+			if(millis() > deadline) {
+				return false;
+			}
+		}
+
+		if(!msgpack::readInt<uint8_t>(*this, seq, true)) {
+			return false;
+		}
+		// Snapshot here: everything up to and including seq is covered by the CRC the sender
+		// computed; the crc16 field read next must not fold into its own check.
+		const uint16_t crcSoFar = this->receive.runningCRC;
+
+		uint16_t transmittedCRC;
+		if(!msgpack::readInt<uint16_t>(*this, transmittedCRC, true)) {
+			return false;
+		}
+
+		return crcSoFar == transmittedCRC;
+	}
+#endif
 }
