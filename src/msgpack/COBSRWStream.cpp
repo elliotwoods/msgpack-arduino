@@ -140,9 +140,27 @@ namespace msgpack {
 		}
 
 		// Check if we've seen an EOP
-		if(this->receive.incomingStreamIsAtStartOfNextPacket
-			&& !this->receive.outgoingStreamIsAtStartOfNextPacket) {
-			// We don't continue if we've seen an EOP until user skips to next packet
+		if(this->receive.incomingStreamIsAtStartOfNextPacket) {
+			// We don't continue if we've seen an EOP until the user skips to the next packet.
+			//
+			// This used to also require !outgoingStreamIsAtStartOfNextPacket -- i.e. it only
+			// stopped once the user had actually read a byte of the current packet. That extra
+			// condition made decodeIncoming() run straight past the delimiter whenever available()
+			// was called twice before the first read(), appending the *next* packet to the current
+			// one. nextIncomingPacket() then discarded the merged tail, so the second packet
+			// vanished with no error anywhere.
+			//
+			// It was reachable from ordinary parsing rather than from misuse: every waitForData()
+			// inside every read helper calls available(), so a loop shaped like
+			//
+			//     while(stream.isStartOfIncomingPacket() && stream.available()) { parse(); ... }
+			//
+			// merges on its second call. Two frames arriving back to back is the normal case on a
+			// busy bus, not an unlucky one -- three queued commands decoded as one.
+			//
+			// Removing the condition is safe because it never gated the first decode: at
+			// construction, and after every nextIncomingPacket(), incomingStreamIsAtStartOfNextPacket
+			// is already false, so this branch is not taken and the decode below proceeds.
 			return;
 		}
 
